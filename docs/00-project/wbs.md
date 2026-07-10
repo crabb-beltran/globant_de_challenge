@@ -12,9 +12,7 @@
 
 Status
 
-- [ ] Pending
-- [X] In Progress
-- [ ] Completed
+- [x] Completed
 
 ---
 
@@ -37,7 +35,7 @@ Deliverables
 
 Status
 
-- [X] In Progress
+- [x] Completed
 
 ---
 
@@ -55,7 +53,7 @@ Status
 
 Status
 
-- [ ]
+- [X] In Progress
 
 ---
 

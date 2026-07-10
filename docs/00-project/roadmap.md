@@ -2,17 +2,17 @@
 
 ## Phase 1 — Planning
 
-- [ ] Read challenge
-- [ ] Analyze requirements
-- [ ] Define architecture
-- [ ] Define technology stack
-- [ ] Create project documentation
+- [X] Read challenge
+- [X] Analyze requirements
+- [X] Define architecture
+- [X] Define technology stack
+- [X] Create project documentation
 
 ---
 
 ## Phase 2 — Environment
 
-- [ ] Configure Git
+- [X] Configure Git
 - [ ] Configure Docker
 - [ ] Configure Python
 - [ ] Configure PostgreSQL
