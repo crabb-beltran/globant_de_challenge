@@ -44,20 +44,55 @@ The proposed solution follows a serverless-first architecture using AWS managed 
 docs/
 app/
 tests/
-docker/
-scripts/
 .github/
 ```
 
 ---
 
+# Getting Started
+
+## Prerequisites
+
+- Docker and Docker Compose
+- AWS CLI (configured — required from Phase 3 onward)
+- Python 3.12 (optional, only if running scripts outside containers)
+
+## Local Setup
+
+```bash
+cp .env.example .env
+# fill in DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT_HOST
+
+docker-compose up --build
+```
+
+- API: http://localhost:8080
+- Interactive docs (Swagger UI): http://localhost:8080/docs
+- Health check: http://localhost:8080/health
+
+---
+
 # Documentation
+
+## Project Management
+
+Read in this order — see [docs/00-project/README.md](docs/00-project/README.md) for the full index and update workflow.
 
 | Document | Description |
 |----------|-------------|
+| docs/00-project/project-status.md | Current phase, active branch, next branch |
+| docs/00-project/roadmap.md | High-level phase sequence |
 | docs/00-project/wbs.md | Work Breakdown Structure |
-| docs/00-project/decisions.md | Architecture Decision Records |
-| docs/00-project/backlog.md | Project Backlog |
+| docs/00-project/backlog.md | Granular task checklist for the active phase |
+| docs/00-project/decisions.md | Architecture Decision Records (ADR) |
+| docs/00-project/conventions.md | Coding and tooling conventions |
+| docs/00-project/risk-register.md | Identified risks and mitigations |
+| docs/00-project/changelog.md | Append-only record of shipped changes |
+
+## Technical Documentation
+
+| Document | Description |
+|----------|-------------|
 | docs/01-architecture/architecture.md | System Architecture |
 | docs/02-database/database.md | Database Design |
 | docs/03-api/api.md | API Specification |
@@ -87,11 +122,14 @@ main
 
 ---
 
+---
+
 # Project Status
 
 | Phase | Status |
 |--------|--------|
-| Planning | 🟨 |
+| Planning | ✅ |
+| Development Environment | ✅ |
 | Infrastructure | ⬜ |
 | Database | ⬜ |
 | API | ⬜ |
@@ -101,6 +139,8 @@ main
 | Reports | ⬜ |
 | Testing | ⬜ |
 | Deployment | ⬜ |
+
+For real-time status, see [docs/00-project/project-status.md](docs/00-project/project-status.md).
 
 ---
 

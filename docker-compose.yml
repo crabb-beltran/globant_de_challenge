@@ -54,10 +54,10 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - AWS_ENDPOINT_URL=http://localstack:4566
-      - AWS_ACCESS_KEY_ID=test_key
-      - AWS_SECRET_ACCESS_KEY=test_secret
-      - AWS_DEFAULT_REGION=us-east-1
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
     ports:
       - "8080:8080"
     volumes:

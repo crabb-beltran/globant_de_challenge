@@ -13,10 +13,10 @@
 ## Phase 2 — Environment
 
 - [X] Configure Git
-- [ ] Configure Docker
-- [ ] Configure Python
-- [ ] Configure PostgreSQL
-- [ ] Configure AWS CLI
+- [X] Configure Docker
+- [X] Configure Python
+- [X] Configure PostgreSQL
+- [X] Configure AWS CLI
 
 ---
 
