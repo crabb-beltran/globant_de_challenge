@@ -1,0 +1,43 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RDSInstanceOperations",
+      "Effect": "Allow",
+      "Action": [
+        "rds:DescribeDBInstances",
+        "rds:StopDBInstance",
+        "rds:StartDBInstance"
+      ],
+      "Resource": "arn:aws:rds:us-east-1:<ACCOUNT_ID>:db:globant-de-challenge-db"
+    },
+    {
+      "Sid": "S3BackupRestore",
+      "Effect": "Allow",
+      "Action": [
+        "s3:PutObject",
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Resource": [
+        "arn:aws:s3:::globant-de-challenge-backups",
+        "arn:aws:s3:::globant-de-challenge-backups/*"
+      ]
+    },
+    {
+      "Sid": "CloudWatchInvalidRecordsLogging",
+      "Effect": "Allow",
+      "Action": [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents"
+      ],
+      "Resource": "arn:aws:logs:us-east-1:<ACCOUNT_ID>:log-group:/globant-de-challenge/*"
+    },
+    {
+      "Sid": "SSMReadCredentials",
+      "Effect": "Allow",
+      "Action": "ssm:GetParameter",
+      "Resource": "arn:aws:ssm:us-east-1:<ACCOUNT_ID>:parameter/globant-de-challenge/*"
+    }
+  ]
+}
