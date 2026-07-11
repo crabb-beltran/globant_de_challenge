@@ -69,15 +69,11 @@ Prepare local environment.
 
 ### Tasks
 
-- [ ] Install Python
-- [ ] Configure Virtual Environment
-- [ ] Configure Docker
-- [ ] Configure Docker Compose
-- [ ] Install PostgreSQL client
-- [ ] Install AWS CLI
-- [ ] Configure AWS CLI
-- [ ] Install Postman
-- [ ] Configure VSCode Extensions
+- [X] Install Python
+- [X] Configure Virtual Environment
+- [X] Configure Docker
+- [X] Configure Docker Compose
+- [X] Install PostgreSQL client
 
 Priority
 
@@ -98,6 +94,8 @@ Provision AWS services.
 ### Tasks
 
 - [ ] Create IAM Developer User
+- [ ] Install AWS CLI
+- [ ] Configure AWS CLI
 - [ ] Create IAM Policies
 - [ ] Create Budget Alerts
 - [ ] Create SSM Parameter Store
