@@ -71,7 +71,7 @@ Status
 
 Status
 
-- [X] In Progress
+- [x] Completed
 
 ---
 
