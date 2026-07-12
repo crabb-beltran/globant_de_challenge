@@ -288,19 +288,32 @@ Once all resources above are created and verified, remove the Bootstrap
 policy — the deployer user should only retain least-privilege Runtime
 permissions going forward.
 
+> **See `risk-register.md` R-023.** An IAM user cannot modify its own
+> attached policies — `detach-user-policy` on oneself returns `AccessDenied`
+> by design (least-privilege is meaningless if a user can grant/revoke its
+> own permissions). This step requires **admin-level credentials**, the
+> same temporary-profile pattern used in Section 3.
+
 ```bash
+# Temporary admin profile — remove immediately after this step
+aws configure --profile admin
+# paste admin/root access keys
+
 aws iam detach-user-policy \
   --user-name globant-de-challenge-deployer \
-  --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/globant-de-challenge-bootstrap
-```
+  --policy-arn arn:aws:iam::<ACCOUNT_ID>:policy/globant-de-challenge-bootstrap \
+  --profile admin
 
-Verify remaining attached policies:
-
-```bash
-aws iam list-attached-user-policies --user-name globant-de-challenge-deployer
+aws iam list-attached-user-policies \
+  --user-name globant-de-challenge-deployer \
+  --profile admin
 ```
 
 Expected: only `globant-de-challenge-runtime` remains attached.
+
+Cleanup immediately after (same ritual as Section 3): remove the `[admin]`
+block from `~/.aws/credentials`, then deactivate and delete the admin
+access key via Console.
 
 ---
 
@@ -308,13 +321,35 @@ Expected: only `globant-de-challenge-runtime` remains attached.
 
 RDS free tier does not apply to accounts older than 12 months — instance
 hours and the public IPv4 address bill from hour one (~$17.65/month if left
-running 24/7). Stop the instance at the end of every work session:
+running 24/7).
+
+### 9.1 Add stop/start permissions to the Runtime policy
+
+The deployer's Runtime policy does not include instance start/stop actions
+by default (they are operational, not provisioning, so they were not part
+of Bootstrap either). Add to `runtime-policy.json` and update the policy in
+IAM (see `docs/09-deployment/policies/runtime-policy.json`):
+
+```json
+{
+  "Sid": "RDSInstanceOperations",
+  "Effect": "Allow",
+  "Action": [
+    "rds:DescribeDBInstances",
+    "rds:StopDBInstance",
+    "rds:StartDBInstance"
+  ],
+  "Resource": "arn:aws:rds:us-east-1:<ACCOUNT_ID>:db:globant-de-challenge-db"
+}
+```
+
+### 9.2 Stop at the end of every work session
 
 ```bash
 aws rds stop-db-instance --db-instance-identifier globant-de-challenge-db
 ```
 
-Start it at the beginning of the next session (allow 3-5 minutes):
+### 9.3 Start at the beginning of the next session (allow 3-5 minutes)
 
 ```bash
 aws rds start-db-instance --db-instance-identifier globant-de-challenge-db
@@ -337,3 +372,4 @@ Notes:
 | `DescribeDBEngineVersions` returned `AccessDenied` | Bootstrap policy did not include this read-only action | Added `rds:DescribeDBEngineVersions` to Bootstrap policy | `risk-register.md` R-022 |
 | `CreateDBInstance` rejected password as "shorter than 8 characters" | Unquoted password with special characters was interpreted by bash before reaching AWS | Loaded password from `.env` via `source .env` and passed as quoted `"$VAR"` | This document, Section 6 |
 | RDS billed from hour one despite free-tier planning | RDS 12-month free tier does not apply to accounts older than 12 months; public IPv4 also bills independently | Adopted stop-when-idle discipline (Section 9); Zero Spend Budget detected the deviation within hours | `risk-register.md` R-001, Lessons Learned 2026-07-11 |
+| `DetachUserPolicy` on the deployer's own Bootstrap policy returned `AccessDenied` | An IAM identity cannot modify its own attached policies — a deliberate AWS safeguard | Executed with a temporary admin CLI profile instead of the deployer identity (Section 8) | `risk-register.md` R-023 |

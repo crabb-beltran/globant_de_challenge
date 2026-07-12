@@ -43,13 +43,11 @@ Status
 
 ### Tasks
 
-- Install Python
-- Configure virtual environment
 - Configure Docker
+- Configure Docker Compose (Postgres, LocalStack, API)
 - Configure Git
+- Install AWS CLI
 - Configure AWS CLI
-- Configure VSCode
-- Configure Postman
 
 Status
 
@@ -61,13 +59,14 @@ Status
 
 ### Tasks
 
-- Create IAM User
-- Configure AWS CLI
 - Create Budget
-- Create Parameter Store
+- Create IAM User
+- Create IAM Bootstrap and Runtime Policies
+- Create RDS Service-Linked Role
+- Create Security Group
+- Create DB Subnet Group
 - Create RDS PostgreSQL
-- Create S3 Bucket
-- Create CloudWatch Log Group
+- Detach Bootstrap Policy (least-privilege downgrade)
 
 Status
 
@@ -80,13 +79,14 @@ Status
 ### Deliverables
 
 - ER Diagram
-- SQL Schema
+- SQL Schema (DDL)
+- SQLAlchemy Models
 - Alembic Configuration
 - Initial Migration
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -205,6 +205,7 @@ Status
 
 ### AWS
 
+- Create ECR Repository
 - Push Docker Image
 - Deploy Lambda
 - Configure API Gateway

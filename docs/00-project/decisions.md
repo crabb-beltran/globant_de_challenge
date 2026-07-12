@@ -378,3 +378,27 @@ fastavro
 **Negative**
 
 - Additional external dependency.
+
+# ADR-009
+
+## Title
+CDC / SCD Type 2 Implementation
+
+### Status
+Rejected
+
+### Context
+Historical portfolio experience (LedgerFlow) applies CDC and SCD Type 2
+for tracking changing financial attributes over time.
+
+### Decision
+Not implemented in this project.
+
+### Rationale
+The challenge's data model has no changing-attribute dimension requiring
+point-in-time historical tracking, and no external mutable source requiring
+incremental change capture. `hired_employees.department_id`/`job_id`
+represent a fact at hire time, not a slowly changing attribute. Applying
+SCD/CDC here would be unjustified complexity relative to the rubric's
+explicit guidance to prioritize correctness and clarity over
+over-engineering (see risk-register.md R-016).
