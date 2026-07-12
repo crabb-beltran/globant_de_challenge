@@ -1,3 +1,10 @@
+-- Reference DDL only — NOT executed directly against the database.
+-- The authoritative schema source is app/models.py (SQLAlchemy 2.0 models).
+-- Schema changes are applied exclusively through Alembic migrations
+-- (app/alembic/versions/). This file documents the initial hand-written
+-- design that preceded the ORM models, kept for traceability.
+
+
 CREATE TABLE IF NOT EXISTS jobs (
     id INTEGER PRIMARY KEY NOT NULL,
     job VARCHAR(255)  NOT NULL
