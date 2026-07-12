@@ -60,13 +60,12 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
 - Detached the Bootstrap policy from the deployer user post-provisioning — deployer now operates with least-privilege Runtime permissions only.
 - Documented the full infrastructure provisioning runbook in `docs/09-deployment/deployment.md`, including IAM policy JSON files with account-id placeholders (`docs/09-deployment/policies/`).
 
----
+#### Database
 
-## [0.1.0] - 2026-07-10
-
-### Added
-
-- Initial repository creation.
-- Project documentation.
-- GitHub configuration.
-- Repository templates.
+- Designed the entity-relationship model for `departments`, `jobs`, and `hired_employees` (1—N relationships), documented in `docs/02-database/database.md`.
+- Defined `TIMESTAMPTZ` for `hired_employees.datetime`, `NOT NULL` on all columns, and `ON DELETE RESTRICT` on both foreign keys — all justified against the challenge's validation rules and audit-data semantics.
+- Wrote the initial SQL DDL (`app/ddl.sql`) as a manual reference alongside the SQLAlchemy models.
+- Implemented SQLAlchemy 2.0 models (`app/models.py`) using `Mapped`/`mapped_column`, with explicit `autoincrement=False` on all primary keys — IDs are sourced from ingested data, not auto-generated (corrected after the first `alembic revision --autogenerate` incorrectly inferred a `SERIAL` sequence).
+- Configured Alembic (`alembic init`, `env.py` wired to `Base.metadata` and to `.env`-sourced connection strings).
+- Generated and applied the initial migration; verified the materialized schema directly against PostgreSQL (`\d hired_employees`) to confirm indexes, foreign keys, and constraint behavior matched the design.
+- Added **ADR-009**, documenting the decision to reject CDC/SCD Type 2 for this project's data model.

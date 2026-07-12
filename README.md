@@ -61,7 +61,7 @@ tests/
 
 ```bash
 cp .env.example .env
-# fill in DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT_HOST
+# fill in all required values — see .env.example for the full list
 
 docker-compose up --build
 ```
@@ -81,7 +81,6 @@ Read in this order — see [docs/00-project/README.md](docs/00-project/README.md
 | Document | Description |
 |----------|-------------|
 | docs/00-project/project-status.md | Current phase, active branch, next branch |
-| docs/00-project/roadmap.md | High-level phase sequence |
 | docs/00-project/wbs.md | Work Breakdown Structure |
 | docs/00-project/backlog.md | Granular task checklist for the active phase |
 | docs/00-project/decisions.md | Architecture Decision Records (ADR) |
@@ -106,54 +105,3 @@ Read in this order — see [docs/00-project/README.md](docs/00-project/README.md
 ---
 
 # Development Workflow
-
-```
-feature/*
-        ↓
-
-develop
-        ↓
-
-release/*
-        ↓
-
-main
-```
-
----
-
----
-
-# Project Status
-
-| Phase | Status |
-|--------|--------|
-| Planning | ✅ |
-| Development Environment | ✅ |
-| Infrastructure | ⬜ |
-| Database | ⬜ |
-| API | ⬜ |
-| Validation | ⬜ |
-| Backup | ⬜ |
-| Restore | ⬜ |
-| Reports | ⬜ |
-| Testing | ⬜ |
-| Deployment | ⬜ |
-
-For real-time status, see [docs/00-project/project-status.md](docs/00-project/project-status.md).
-
----
-
-# Future Improvements
-
-- Infrastructure as Code
-- Monitoring Dashboard
-- Authentication
-- Unit Test Coverage >90%
-- Automated Deployment
-
----
-
-# License
-
-MIT
