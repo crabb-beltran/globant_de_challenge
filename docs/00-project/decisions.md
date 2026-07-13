@@ -402,3 +402,66 @@ represent a fact at hire time, not a slowly changing attribute. Applying
 SCD/CDC here would be unjustified complexity relative to the rubric's
 explicit guidance to prioritize correctness and clarity over
 over-engineering (see risk-register.md R-016).
+
+
+# ADR-010
+
+## Title
+
+Idempotency Strategy for Historical Data Loaders
+
+### Status
+
+Accepted
+
+### Context
+
+The challenge does not specify whether historical CSV loaders will be
+re-executed (e.g. re-run after a partial failure, or re-run if the source
+file is updated with additional records). Without an explicit strategy,
+re-running a loader against already-loaded data would violate the
+non-auto-incrementing `PRIMARY KEY` constraint (see `database.md`),
+causing the entire batch transaction to fail and roll back — including
+valid new records in the same run.
+
+### Alternatives
+
+| Option | Pros | Cons |
+|---------|------|------|
+| Skip-if-exists | Simple, safe by default, idempotent, never silently overwrites data | Does not apply corrections to already-loaded records |
+| Upsert (INSERT ON CONFLICT DO UPDATE) | Applies corrections from updated source files | Silently overwrites data; risky without an explicit "this is a correction" signal |
+| Full replace (truncate + reload) | Simple mental model | Destroys any data inserted through other means (e.g. future REST API), not safe for a mixed-ingestion system |
+
+### Decision
+
+Skip-if-exists: before inserting, load the set of existing primary key IDs
+once per run; any CSV row whose `id` already exists in the database is
+skipped (counted separately from both "inserted" and "rejected").
+
+### Rationale
+
+- The challenge describes this as a historical migration, not a continuous
+  synchronization process — there is no stated requirement to apply
+  corrections to already-loaded records.
+- Idempotency by default is the safer choice: the loader can be re-run any
+  number of times without side effects, which is valuable during
+  development and testing.
+- Applying corrections (upsert) is a distinct, explicit use case better
+  suited to a dedicated API endpoint (`PUT`/`PATCH`, Phase 6) than to a
+  silent re-run of a batch loader.
+- This same pattern is applied uniformly to `departments`/`jobs`
+  (`loaders/reference_data.py`) and `hired_employees`
+  (`loaders/historical.py`).
+
+### Consequences
+
+**Positive**
+
+- Loaders are safely re-runnable without manual cleanup.
+- No risk of accidental data overwrite from a stale or duplicated source file.
+- Consistent behavior across all three reference/historical loaders.
+
+**Negative**
+
+- Does not support correcting already-loaded records via re-run; a
+  correction requires a separate, explicit mechanism (future API endpoint).

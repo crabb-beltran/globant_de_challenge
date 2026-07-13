@@ -69,3 +69,15 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
 - Configured Alembic (`alembic init`, `env.py` wired to `Base.metadata` and to `.env`-sourced connection strings).
 - Generated and applied the initial migration; verified the materialized schema directly against PostgreSQL (`\d hired_employees`) to confirm indexes, foreign keys, and constraint behavior matched the design.
 - Added **ADR-009**, documenting the decision to reject CDC/SCD Type 2 for this project's data model.
+
+#### Historical Data Migration
+
+- Diagnosed source CSVs (`hired_employees.csv`, `departments.csv`, `jobs.csv`) using `awk`/`grep`, documented in `docs/05-historical-migration/data-quality-analysis.md`.
+- Implemented `schemas/hired_employee.py`, `schemas/department.py`, `schemas/job.py` (Pydantic) with explicit business-error messages for required-field violations and strict ISO 8601 datetime validation.
+- Implemented `validators/business_rules.py` for foreign-key existence checks (`department_id`/`job_id`) against in-memory ID sets, avoiding per-row database queries.
+- Implemented `db/config.py` (shared connection string builder, used by both Alembic and the application) and `db/session.py` (SQLAlchemy session factory).
+- Implemented `loaders/reference_data.py` (generic loader for `departments`/`jobs`) and `loaders/historical.py` (loader for `hired_employees`, depends on reference data being loaded first).
+- Implemented `logging_/rejected_records.py`: structured JSON logging to stdout, forwarded to CloudWatch Logs automatically under the Lambda runtime (ADR-004), parameterized by `source` for future reuse by the REST API (Phase 6).
+- Added **ADR-010**: skip-if-exists idempotency strategy for both loaders, chosen over upsert or full-replace.
+- Corrected initial data quality diagnosis after discovering a CRLF-related blind spot in shell-based `awk` checks (see `risk-register.md` R-024) — final count: 70 invalid records out of 1999 (3.50%), not the initially reported 54.
+- Successfully loaded: 12 departments, 183 jobs, 1929 hired employees (70 rejected, 0 skipped on first run).

@@ -102,7 +102,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
