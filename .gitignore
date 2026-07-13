@@ -40,3 +40,6 @@ Thumbs.db
 # Aws
 aws/
 awscliv2.zip
+
+# Historical dataset CSVs — provided externally, not committed
+datasets/*.csv

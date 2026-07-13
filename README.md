@@ -43,6 +43,7 @@ The proposed solution follows a serverless-first architecture using AWS managed 
 ```text
 docs/
 app/
+datasets/
 tests/
 .github/
 ```
@@ -70,6 +71,29 @@ docker-compose up --build
 - Interactive docs (Swagger UI): http://localhost:8080/docs
 - Health check: http://localhost:8080/health
 
+## Data Setup
+
+The historical CSV files (`hired_employees.csv`, `departments.csv`,
+`jobs.csv`) are **not committed to this repository** — `datasets/*.csv` is
+gitignored. Place your own copies of the challenge's source files inside
+`datasets/` before running the historical loaders; the folder itself is
+tracked (via `.gitkeep`) so the expected location is explicit.
+
+## Loading Historical Data
+
+Once the stack is running and the database schema is migrated
+(`alembic upgrade head` — see `docs/10-deployment/deployment.md` if
+running against RDS, or run inside the `api` container for local Postgres):
+
+```bash
+docker-compose exec api bash
+cd /app
+python -m loaders.reference_data /datasets/departments.csv /datasets/jobs.csv
+python -m loaders.historical /datasets/hired_employees.csv
+```
+
+See [docs/03-historical-migration/execution-guide.md](docs/03-historical-migration/execution-guide.md) for full details, including data quality findings and idempotency behavior.
+
 ---
 
 # Documentation
@@ -94,14 +118,62 @@ Read in this order — see [docs/00-project/README.md](docs/00-project/README.md
 |----------|-------------|
 | docs/01-architecture/architecture.md | System Architecture |
 | docs/02-database/database.md | Database Design |
-| docs/03-api/api.md | API Specification |
-| docs/04-validation/validation.md | Validation Rules |
-| docs/05-backup/backup.md | Backup Strategy |
-| docs/06-restore/restore.md | Restore Strategy |
-| docs/07-reports/reports.md | SQL Reports |
-| docs/08-testing/testing.md | Testing Strategy |
-| docs/09-deployment/deployment.md | Deployment Guide |
+| docs/03-historical-migration/data-quality-analysis.md | Historical Dataset Data Quality Findings |
+| docs/03-historical-migration/execution-guide.md | Historical Data Migration Execution Guide |
+| docs/04-api/api.md | API Specification |
+| docs/05-validation/validation.md | Validation Rules |
+| docs/06-backup/backup.md | Backup Strategy |
+| docs/07-restore/restore.md | Restore Strategy |
+| docs/08-reports/reports.md | SQL Reports |
+| docs/09-testing/testing.md | Testing Strategy |
+| docs/10-deployment/deployment.md | Deployment Guide |
 
 ---
 
 # Development Workflow
+
+feature/*
+↓
+develop
+↓
+release/*
+↓
+main
+
+---
+
+# Project Status
+
+| Phase | Status |
+|--------|--------|
+| Project Setup | ✅ |
+| Development Environment | ✅ |
+| AWS Infrastructure | ✅ |
+| Database | ✅ |
+| Historical Data Migration | ✅ |
+| REST API | ⬜ |
+| Validation Engine | ⬜ |
+| Backup & Restore | ⬜ |
+| SQL Reports | ⬜ |
+| Testing | ⬜ |
+| CI/CD | ⬜ |
+| Deployment | ⬜ |
+| Project Closure | ⬜ |
+
+For real-time status, see [docs/00-project/project-status.md](docs/00-project/project-status.md).
+
+---
+
+# Future Improvements
+
+- Infrastructure as Code
+- Monitoring Dashboard
+- Authentication
+- Unit Test Coverage >90%
+- Automated Deployment
+
+---
+
+# License
+
+MIT
