@@ -265,3 +265,43 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
   database entirely; recovered via the AVRO backup from Phase 8. Noted
   as a risk for `feature/testing` (Phase 10) to address with a properly
   isolated test database.
+
+  
+  #### Testing
+
+- Consolidated the full test suite across all prior phases: 28 unit
+  tests (Tier 1, SQLite, default run) + 13 integration tests (Tier 2,
+  Postgres, opt-in via `RUN_INTEGRATION_TESTS=1`) = 41 total.
+- Built a dedicated, isolated test database (`globant_test`) — a
+  physically separate database on the same Postgres instance, not a
+  schema within the development database. Auto-created on first
+  integration test run via `sqlalchemy_utils.create_database`
+  (`tests/integration_conftest.py`).
+- Added `db/config.py::get_test_database_url()` alongside the existing
+  `get_database_url()`, both sharing the same credentials but pointing
+  at different database names.
+- Migrated `test_restore_integration.py` and `test_reports_integration.py`
+  from directly using `db.session.SessionLocal` (development database)
+  to the new isolated `pg_test_session` fixture.
+- Added a structural safety guardrail in `pg_test_session`: asserts the
+  resolved database name contains `"test"` before proceeding, converting
+  a misconfigured fixture into an immediate `AssertionError` instead of
+  a silent `TRUNCATE` of real data.
+- Added `test_integration_conftest_guardrail.py`: meta-test proving the
+  guardrail assertion logic itself is sound, independent of live
+  database availability (runs as part of the default Tier 1 suite).
+- Added `test_db_constraint_violation_integration.py`: closes the
+  `DB_CONSTRAINT_VIOLATION` coverage gap deferred since Phase 6, by
+  simulating a race condition (stale `existing_ids` read followed by a
+  concurrent insert) that SQLite's unit suite cannot reproduce.
+- Added `docs/09-testing/testing.md`: two-tier strategy, and full
+  incident writeup of the database-isolation failures this phase
+  addresses.
+- **Incident** (root cause of this phase's priority): an earlier
+  integration test fixture connected directly to the development
+  Postgres database and truncated all three tables via its
+  setup/teardown logic, emptying `departments`/`jobs`/`hired_employees`
+  in development on two separate occasions. Both recoveries used the
+  AVRO backup from Phase 8 (`POST /restore`). Motivated the database
+  isolation and guardrail work in this phase — see `testing.md` for the
+  full writeup.

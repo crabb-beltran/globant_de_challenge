@@ -6,11 +6,16 @@ PERCENTILE_CONT, STDDEV_SAMP, and window functions (OVER()) are Postgres-
 specific syntax with no SQLite equivalent — a SQLite-based test would fail
 on syntax before testing any actual logic.
 
-Skipped automatically unless RUN_INTEGRATION_TESTS=1 is set (same
-convention as test_restore_integration.py). Seeds a small, hand-verifiable
-synthetic dataset inside each test rather than depending on the project's
-real 1929-row dataset, so assertions stay exact and independent of
-whatever real data currently exists in the dev database.
+Uses a dedicated test database (globant_test), isolated from the
+development database used by db/session.py's SessionLocal — see
+integration_conftest.py. This isolation exists specifically because an
+earlier version of these integration tests connected to the development
+database directly and truncated it via cleanup logic, wiping real data
+(see docs/00-project/changelog.md, Phase 9 entry).
+
+Seeds a small, hand-verifiable synthetic dataset inside each test rather
+than depending on the project's real 1929-row dataset, so assertions
+stay exact and independent of whatever real data currently exists.
 
 Run with:
     docker-compose exec api bash
@@ -21,31 +26,16 @@ import os
 import pytest
 from datetime import datetime as dt
 
-from db.session import SessionLocal
+from integration_conftest import pg_test_session as pg_session
 from models import Department, Job, HiredEmployee
 from routers.reports import (
     QUARTERLY_HIRES_SQL, DEPARTMENTS_ABOVE_AVG_SQL, HIRING_DISTRIBUTION_STATS_SQL, Z_SCORE_SQL,
 )
-from services.restore import RESTORE_ORDER_PARENT_TO_CHILD
-from sqlalchemy import text
 
 pytestmark = pytest.mark.skipif(
     os.getenv("RUN_INTEGRATION_TESTS") != "1",
     reason="requires a live Postgres connection; set RUN_INTEGRATION_TESTS=1 to run",
 )
-
-
-@pytest.fixture()
-def pg_session():
-    db = SessionLocal()
-    db.execute(text(f"TRUNCATE TABLE {', '.join(RESTORE_ORDER_PARENT_TO_CHILD)}"))
-    db.commit()
-    try:
-        yield db
-    finally:
-        db.execute(text(f"TRUNCATE TABLE {', '.join(RESTORE_ORDER_PARENT_TO_CHILD)}"))
-        db.commit()
-        db.close()
 
 
 @pytest.fixture()
@@ -95,9 +85,6 @@ class TestHiringByQuarter:
         assert (sales["q1"], sales["q2"], sales["q3"], sales["q4"]) == (0, 1, 0, 0)
 
     def test_department_with_zero_2021_hires_absent(self, seeded_dataset):
-        # Legal has no hired_employees rows at all -> INNER JOIN means
-        # it simply doesn't appear here (unlike departments-above-average,
-        # which uses LEFT JOIN specifically to include zero-hire departments)
         rows = seeded_dataset.execute(QUARTERLY_HIRES_SQL).mappings().all()
         departments_present = {r["department"] for r in rows}
         assert "Legal" not in departments_present
@@ -110,26 +97,14 @@ class TestHiringByQuarter:
 
 class TestDepartmentsAboveAverage:
     def test_only_engineering_above_average(self, seeded_dataset):
-        # mean = (3 + 1 + 0) / 3 = 1.333...; only Engineering (3) exceeds it
         rows = seeded_dataset.execute(DEPARTMENTS_ABOVE_AVG_SQL).mappings().all()
         assert len(rows) == 1
         assert rows[0]["department"] == "Engineering"
         assert rows[0]["hired"] == 3
 
     def test_zero_hire_department_counted_in_average_via_left_join(self, seeded_dataset):
-        """
-        Regression guard for the LEFT JOIN design decision: if this were
-        an INNER JOIN, Legal (0 hires) would be excluded from the AVG
-        calculation entirely, inflating the average and changing which
-        departments qualify as "above average."
-        """
         rows = seeded_dataset.execute(DEPARTMENTS_ABOVE_AVG_SQL).mappings().all()
-        # with Legal excluded from the average (INNER JOIN bug), mean
-        # would be (3+1)/2 = 2.0, and Engineering (3) would still pass —
-        # so this alone doesn't prove the LEFT JOIN; the ordered result
-        # and count together do: exactly 1 department, not more/fewer,
-        # matches the LEFT JOIN's correct mean of 1.333.
-        assert len(rows) == 1  # confirms the correct (lower) average was used
+        assert len(rows) == 1  # confirms the correct (LEFT JOIN) average was used
 
     def test_ordered_by_hired_desc(self, seeded_dataset):
         rows = seeded_dataset.execute(DEPARTMENTS_ABOVE_AVG_SQL).mappings().all()
@@ -140,10 +115,10 @@ class TestDepartmentsAboveAverage:
 class TestHiringDistributionStats:
     def test_summary_stats_computed(self, seeded_dataset):
         result = seeded_dataset.execute(HIRING_DISTRIBUTION_STATS_SQL).mappings().one()
-        # hires per department (2021): [3, 1, 0] -> mean = 1.3333..., median = 1.0
-        # Postgres AVG()/STDDEV_SAMP() on integer columns return NUMERIC,
-        # deserialized as Decimal — cast to float before comparing with
-        # pytest.approx, which doesn't support float-Decimal subtraction.
+        # Postgres AVG()/PERCENTILE_CONT() on integer columns return
+        # NUMERIC, deserialized as Decimal — cast to float before
+        # comparing with pytest.approx, which doesn't support
+        # float-Decimal subtraction.
         assert float(result["mean_hired"]) == pytest.approx(4 / 3, rel=1e-6)
         assert float(result["median_hired"]) == pytest.approx(1.0)
         assert result["stdev_hired"] is not None
