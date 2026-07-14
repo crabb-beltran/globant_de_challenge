@@ -2,9 +2,9 @@
 
 **Project:** Globant Data Engineering Challenge
 
-**Current Version:** v0.1.0
+**Current Version:** v0.3.0
 
-**Current Branch:** feature/rest-api
+**Current Branch:** feature/validation-engine
 
 **Last Update:** 2026-07-13
 
@@ -20,7 +20,7 @@
 | Database | 100% | feature/database-schema | ✅ Completed |
 | Historical Data Migration | 100% | feature/historical-loader | ✅ Completed |
 | REST API | 100% | feature/rest-api | ✅ Completed |
-| Validation Engine | 0% | feature/validation-engine | ⏳ Pending |
+| Validation Engine | 100% | feature/validation-engine | ✅ Completed |
 | Backup & Restore | 0% | feature/backup-restore | ⏳ Pending |
 | SQL Reports | 0% | feature/sql-reports | ⏳ Pending |
 | Testing | 0% | feature/testing | ⏳ Pending |
@@ -35,17 +35,19 @@
 
 ## Active Branch
 
-feature/rest-api
+feature/validation-engine (pending merge to develop)
 
 ## Current Goal
 
-- Final review of employees/departments/jobs endpoints
+- Final review of validation gap audit and fixes
 - Merge into develop
-- Open feature/validation-engine per WBS order
+- Open feature/sql-reports (retrieves the `reports.py` router already
+  built during Fase 6 exploration, held out of that PR) or
+  feature/backup-restore, per WBS order
 
 ## Next Branch
 
-feature/validation-engine
+feature/sql-reports
 
 ---
 

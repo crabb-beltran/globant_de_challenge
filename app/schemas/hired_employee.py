@@ -1,6 +1,5 @@
 import re
-from datetime import datetime as dt
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 ISO_DATETIME_PATTERN = re.compile(
@@ -9,17 +8,33 @@ ISO_DATETIME_PATTERN = re.compile(
 
 
 class HiredEmployeeSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     id: int
     name: str
     hire_datetime: str
     department_id: int
     job_id: int
 
+    @field_validator("id", mode="before")
+    @classmethod
+    def id_required(cls, value):
+        if value is None or value == "":
+            raise ValueError("id is required and cannot be empty")
+        return value
+
+    @field_validator("id")
+    @classmethod
+    def id_must_be_positive(cls, value):
+        if value <= 0:
+            raise ValueError("id must be a positive integer")
+        return value
+
     @field_validator("name", mode="before")
     @classmethod
     def name_required(cls, value):
-        if value is None or value == "":
-            raise ValueError("name is required and cannot be empty")
+        if value is None or (isinstance(value, str) and value.strip() == ""):
+            raise ValueError("name is required and cannot be empty or whitespace-only")
         return value
 
     @field_validator("hire_datetime", mode="before")
@@ -39,6 +54,13 @@ class HiredEmployeeSchema(BaseModel):
             raise ValueError("department_id is required and cannot be empty")
         return value
 
+    @field_validator("department_id")
+    @classmethod
+    def department_id_must_be_positive(cls, value):
+        if value <= 0:
+            raise ValueError("department_id must be a positive integer")
+        return value
+
     @field_validator("job_id", mode="before")
     @classmethod
     def job_id_required(cls, value):
@@ -46,3 +68,9 @@ class HiredEmployeeSchema(BaseModel):
             raise ValueError("job_id is required and cannot be empty")
         return value
 
+    @field_validator("job_id")
+    @classmethod
+    def job_id_must_be_positive(cls, value):
+        if value <= 0:
+            raise ValueError("job_id must be a positive integer")
+        return value
