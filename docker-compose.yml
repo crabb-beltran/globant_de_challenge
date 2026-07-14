@@ -65,6 +65,7 @@ services:
       - ./tests:/tests
       - ./datasets:/datasets
       - ./backups:/app/backups
+      - ./.flake8:/app/.flake8
     networks:
       - red_aplicacion
     healthcheck:

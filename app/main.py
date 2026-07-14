@@ -5,7 +5,10 @@ from routers import employees, departments, jobs, backup, restore, reports
 
 app = FastAPI(
     title="Globant Data Engineering Challenge API",
-    description="REST API for historical data migration, validation, backup/restore, and SQL reporting.",
+    description=(
+        "REST API for historical data migration, validation, "
+        "backup/restore, and SQL reporting."
+    ),
     version="0.4.0",
 )
 

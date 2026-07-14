@@ -156,7 +156,7 @@ main
 | Backup & Restore | ✅ |
 | SQL Reports | ✅ |
 | Testing | ✅ |
-| CI/CD | ⬜ |
+| CI/CD | ✅ |
 | Deployment | ⬜ |
 | Project Closure | ⬜ |
 

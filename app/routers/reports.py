@@ -3,7 +3,11 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from db.session import get_db
-from schemas.reports import QuarterlyHiring, DepartmentAboveAverage, HiringDistributionStats
+from schemas.reports import (
+    QuarterlyHiring,
+    DepartmentAboveAverage,
+    HiringDistributionStats,
+)
 
 router = APIRouter(prefix="/reports", tags=["Reports"])
 

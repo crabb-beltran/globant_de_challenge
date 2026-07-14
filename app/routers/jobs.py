@@ -19,7 +19,9 @@ def _job_field_map(record: Jobs) -> dict:
 @router.post("", response_model=BatchIngestResponse, status_code=207)
 def ingest_jobs(payload: list[Jobs], db: Session = Depends(get_db)):
     if not (1 <= len(payload) <= MAX_BATCH_SIZE):
-        raise HTTPException(422, f"batch size must be between 1 and {MAX_BATCH_SIZE} rows")
+        raise HTTPException(
+            422, f"batch size must be between 1 and {MAX_BATCH_SIZE} rows"
+        )
 
     existing_ids = {row.id for row in db.query(Job.id).all()}
 

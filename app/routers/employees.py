@@ -29,7 +29,9 @@ def _employee_field_map(record: HiredEmployeeSchema) -> dict:
 @router.post("", response_model=BatchIngestResponse, status_code=207)
 def ingest_employees(payload: list[HiredEmployeeSchema], db: Session = Depends(get_db)):
     if not (1 <= len(payload) <= MAX_BATCH_SIZE):
-        raise HTTPException(422, f"batch size must be between 1 and {MAX_BATCH_SIZE} rows")
+        raise HTTPException(
+            422, f"batch size must be between 1 and {MAX_BATCH_SIZE} rows"
+        )
 
     valid_department_ids, valid_job_ids = load_valid_ids(db)
     existing_ids = load_existing_employee_ids(db)

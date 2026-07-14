@@ -305,3 +305,36 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
   AVRO backup from Phase 8 (`POST /restore`). Motivated the database
   isolation and guardrail work in this phase — see `testing.md` for the
   full writeup.
+
+  #### CI/CD
+
+- Added `.github/workflows/ci.yml`: three parallel jobs on every
+  `pull_request`/`push` to `develop`/`main` — `quality` (Black + Flake8),
+  `test` (two-tier suite via a Postgres service container), and
+  `docker-build` (image build validation, no registry push).
+- Added `.flake8` at the repository root, applying targeted
+  `per-file-ignores` for two intentional patterns previously flagged as
+  violations: `sys.path` manipulation before imports in `conftest.py`/
+  `integration_conftest.py`/`alembic/env.py`, and pytest fixture
+  parameter shadowing in the integration test files.
+- Applied Black formatting across the full codebase (34 files
+  reformatted) — first time an automated formatter ran against the
+  project; conventions.md specified Black from the start but it was
+  never enforced as a gate until this phase.
+- Fixed real Flake8 findings (not configuration exceptions): removed
+  two unused imports in `test_ingestion_service.py` (`models.Job`,
+  `schemas.job.Jobs`) and one in `test_restore_integration.py`
+  (`services.restore.RESTORE_ORDER_PARENT_TO_CHILD`, leftover from an
+  earlier fixture design); wrapped an over-length `description` string
+  in `main.py` using implicit string concatenation.
+- Added `black>=24.0.0` and `flake8>=7.0.0` to `requirements.txt`.
+- **Incident**: `per-file-ignores` patterns prefixed with `*/` silently
+  failed to match any file — `fnmatch` does not resolve `..` path
+  components before matching, so patterns never matched when Flake8 was
+  invoked with relative paths containing `../`. Fixed by using base
+  filenames only, with no path prefix — confirmed to behave identically
+  regardless of invocation directory. Full writeup in
+  `docs/11-cicd/cicd.md`.
+- Added `docs/11-cicd/cicd.md`: job breakdown, CI-vs-local environment
+  differences (service container vs docker-compose), and the
+  `per-file-ignores` incident.

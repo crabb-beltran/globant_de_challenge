@@ -25,5 +25,7 @@ class Departments(BaseModel):
     @classmethod
     def department_required(cls, value):
         if value is None or (isinstance(value, str) and value.strip() == ""):
-            raise ValueError("department name is required and cannot be empty or whitespace-only")
+            raise ValueError(
+                "department name is required and cannot be empty or whitespace-only"
+            )
         return value

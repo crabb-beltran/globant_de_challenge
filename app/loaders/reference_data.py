@@ -17,7 +17,9 @@ def load_existing_ids(db_session, model_cls) -> set[int]:
     return {row.id for row in db_session.query(model_cls.id).all()}
 
 
-def load_reference_csv(csv_path: str, schema_cls, model_cls, id_field: str, name_field: str) -> dict:
+def load_reference_csv(
+    csv_path: str, schema_cls, model_cls, id_field: str, name_field: str
+) -> dict:
     """
     schema_cls: Pydantic schema (Departments or Jobs)
     model_cls: SQLAlchemy model (Department or Job)
@@ -38,7 +40,9 @@ def load_reference_csv(csv_path: str, schema_cls, model_cls, id_field: str, name
                 try:
                     validated = schema_cls(**{id_field: row[0], name_field: row[1]})
                 except (ValidationError, ValueError) as e:
-                    log_rejected_record(row=row, error=str(e), source="reference_data_loader")
+                    log_rejected_record(
+                        row=row, error=str(e), source="reference_data_loader"
+                    )
                     rejected_count += 1
                     continue
 
@@ -48,15 +52,21 @@ def load_reference_csv(csv_path: str, schema_cls, model_cls, id_field: str, name
                     skipped_count += 1
                     continue
 
-                instance = model_cls(**{
-                    id_field: record_id,
-                    name_field: getattr(validated, name_field),
-                })
+                instance = model_cls(
+                    **{
+                        id_field: record_id,
+                        name_field: getattr(validated, name_field),
+                    }
+                )
                 db.add(instance)
                 inserted_count += 1
 
         db.commit()
-        return {"inserted": inserted_count, "rejected": rejected_count, "skipped": skipped_count}
+        return {
+            "inserted": inserted_count,
+            "rejected": rejected_count,
+            "skipped": skipped_count,
+        }
 
     except Exception:
         db.rollback()
@@ -70,7 +80,9 @@ if __name__ == "__main__":
     from schemas.job import Jobs
     from models import Department, Job
 
-    result_dept = load_reference_csv(sys.argv[1], Departments, Department, "id", "department")
+    result_dept = load_reference_csv(
+        sys.argv[1], Departments, Department, "id", "department"
+    )
     print("Departments:", result_dept)
 
     result_jobs = load_reference_csv(sys.argv[2], Jobs, Job, "id", "job")
