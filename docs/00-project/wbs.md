@@ -133,7 +133,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -151,7 +151,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -164,7 +164,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -179,7 +179,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -194,7 +194,7 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
@@ -226,4 +226,4 @@ Status
 
 Status
 
-- [ ]
+- [x] Completed
