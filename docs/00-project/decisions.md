@@ -551,3 +551,55 @@ new component.
   locations (schemas + business_rules/ingestion service) to get the full
   picture of validation behavior, rather than one. Mitigated by
   `validation.md` serving as the single documentation entry point.
+
+  # ADR-012
+
+## Title
+
+Backup Storage Location — Filesystem vs S3 (ADR-006 Reconciliation)
+
+### Status
+
+Accepted
+
+### Context
+
+ADR-006 specified "Apache AVRO stored in Amazon S3" as the backup
+strategy. However, the challenge's literal requirement states: "Export
+the full content of each table. Save it in AVRO format **on the
+filesystem**" — not S3. This is a direct conflict between an earlier
+architectural decision and the graded requirement.
+
+### Decision
+
+Backup/restore for this PoC writes AVRO files to local filesystem
+(`/app/backups/`, mounted volume), matching the challenge's literal
+requirement. S3 upload is documented as a future extension point
+(infrastructure already provisioned in Phase 3), not implemented in
+this phase.
+
+### Rationale
+
+- The challenge's evaluation criteria reward correctness against stated
+  requirements over inferred "production-grade" alternatives; deviating
+  from an explicit instruction ("on the filesystem") to satisfy an
+  earlier, more general ADR would be scope substitution, not scope
+  improvement.
+- S3 remains a documented, low-effort extension (bucket already exists
+  from Phase 3 infrastructure) rather than a discarded decision.
+
+### Consequences
+
+**Positive**
+
+- Directly satisfies the graded requirement without ambiguity.
+- No added AWS SDK complexity (`boto3` calls, IAM permissions for S3
+  write) inside the core backup/restore logic for this phase.
+
+**Negative**
+
+- Backups are ephemeral relative to the API container's filesystem
+  unless the backup directory is externally mounted/persisted (see
+  `docker-compose.yml` volume configuration in `backup.md`).
+- ADR-006 is now partially superseded; cross-referenced here rather
+  than rewritten, to preserve historical decision traceability.

@@ -153,7 +153,7 @@ main
 | Historical Data Migration | ✅ |
 | REST API | ✅ |
 | Validation Engine | ✅ |
-| Backup & Restore | ⬜ |
+| Backup & Restore | ✅ |
 | SQL Reports | ⬜ |
 | Testing | ⬜ |
 | CI/CD | ⬜ |

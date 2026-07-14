@@ -64,6 +64,7 @@ services:
       - ./app:/app
       - ./tests:/tests
       - ./datasets:/datasets
+      - ./backups:/app/backups
     networks:
       - red_aplicacion
     healthcheck:

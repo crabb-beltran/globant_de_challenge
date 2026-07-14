@@ -164,3 +164,53 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
   field rejection) plus the two confirmed non-issues (ISO offset
   rejection, numeric string coercion), locking in current behavior
   against future silent changes. Full suite: 27/27 passing.
+
+  #### Backup & Restore
+
+- Implemented `services/backup.py`: exports `departments`, `jobs`, and
+  `hired_employees` to individual AVRO files on the local filesystem
+  (`/app/backups/`), one schema per table. Storage location follows the
+  challenge's literal requirement over the original ADR-006 (S3) — see
+  **ADR-012** for the reconciliation.
+- Implemented `routers/backup.py`: `POST /backup`, on-demand, synchronous,
+  exports all three tables in one call. No scheduler implemented — out
+  of scope per `risk-register.md` R-016; documented as a future
+  production extension point instead.
+- Implemented `services/restore.py`: two restore modes —
+  `restore_all()` (all three tables together, the safe default) and
+  `restore_table()` (single-table, only safe for tables with no FK
+  dependents).
+- Implemented `routers/restore.py`: `POST /restore` and
+  `POST /restore/{table_name}`, both requiring an explicit
+  `?confirm=true` guardrail given the destructive (TRUNCATE + reload)
+  nature of the operation.
+- **Incident findings** (full writeup in `docs/07-restore/restore.md`):
+  - Postgres `TRUNCATE` rejects a table if *any* other table has a FK
+    constraint referencing it, regardless of that table's current row
+    count — not just when rows actually conflict. Fixed by truncating
+    all three related tables in a single `TRUNCATE` statement instead
+    of per-table sequential truncation.
+  - `Session.add()` across multiple tables does not guarantee INSERT
+    execution order without an explicit `db.flush()` between tables —
+    SQLAlchemy 2.0's bulk-insert batching can dispatch a dependent
+    table's rows before its FK target's rows are physically inserted,
+    even when both were queued in the correct order. Fixed by calling
+    `db.flush()` after each table's reload, while still committing the
+    whole restore atomically at the end.
+  - `TRUNCATE ... CASCADE` was deliberately rejected as a fix, despite
+    Postgres suggesting it: `CASCADE` would silently wipe any future
+    table referencing the truncated one, outside this restore's known,
+    explicit scope.
+- Added **ADR-012**: reconciles ADR-006 (S3) with the challenge's literal
+  filesystem requirement for backups.
+- Added `docs/06-backup/backup.md` and `docs/07-restore/restore.md`,
+  including the full incident writeup as living documentation of the
+  two Postgres/SQLAlchemy findings above.
+- Added `tests/test_restore_integration.py`: 4 integration tests against
+  a real Postgres connection (skipped by default; run explicitly with
+  `RUN_INTEGRATION_TESTS=1`), covering both incident findings as
+  permanent regression coverage — SQLite (used by the rest of the unit
+  suite) cannot reproduce either bug, since it lacks `TRUNCATE` and does
+  not enforce FK constraints by default.
+- Fixed: removed an unused `export_department()` function left over
+  from initial `services/backup.py` scaffolding.
