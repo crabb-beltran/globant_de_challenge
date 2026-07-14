@@ -154,7 +154,7 @@ main
 | REST API | ✅ |
 | Validation Engine | ✅ |
 | Backup & Restore | ✅ |
-| SQL Reports | ⬜ |
+| SQL Reports | ✅ |
 | Testing | ⬜ |
 | CI/CD | ⬜ |
 | Deployment | ⬜ |

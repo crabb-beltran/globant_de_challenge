@@ -2,9 +2,9 @@
 
 **Project:** Globant Data Engineering Challenge
 
-**Current Version:** v0.5.0
+**Current Version:** v0.6.0
 
-**Current Branch:** feature/backup-restore
+**Current Branch:** feature/sql-reports
 
 **Last Update:** 2026-07-14
 
@@ -22,7 +22,7 @@
 | REST API | 100% | feature/rest-api | ✅ Completed |
 | Validation Engine | 100% | feature/validation-engine | ✅ Completed |
 | Backup & Restore | 100% | feature/backup-restore | ✅ Completed |
-| SQL Reports | 0% | feature/sql-reports | ⏳ Pending |
+| SQL Reports | 100% | feature/sql-reports | ✅ Completed |
 | Testing | 0% | feature/testing | ⏳ Pending |
 | CI/CD | 0% | feature/github-actions | ⏳ Pending |
 | Deployment | 0% | feature/aws-deployment | ⏳ Pending |
@@ -35,18 +35,19 @@
 
 ## Active Branch
 
-feature/backup-restore (pending merge to develop)
+feature/sql-reports (pending merge to develop)
 
 ## Current Goal
 
-- Final review of backup/restore endpoints and incident documentation
+- Final review of report endpoints and statistical findings
 - Merge into develop
-- Open feature/sql-reports (retrieves `routers/reports.py`, already
-  built during Fase 6 exploration and held out of that PR)
+- Open feature/testing — priority: isolate test database from dev
+  Postgres (see Lessons Learned, risk of accidental data loss from
+  integration test fixtures sharing the dev connection)
 
 ## Next Branch
 
-feature/sql-reports
+feature/testing
 
 ---
 

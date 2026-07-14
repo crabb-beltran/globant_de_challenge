@@ -214,3 +214,54 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
   not enforce FK constraints by default.
 - Fixed: removed an unused `export_department()` function left over
   from initial `services/backup.py` scaffolding.
+
+#### SQL Reports
+
+- Reactivated `routers/reports.py` (drafted during Phase 6 exploration,
+  held out of that PR pending its own branch per WBS scope realignment).
+- Implemented `GET /reports/hiring-by-quarter` (Challenge 2, Question 1):
+  employees hired per job/department, pivoted by quarter, 2021 only,
+  using Postgres `FILTER (WHERE ...)` instead of SQLAlchemy's expression
+  language or manual `CASE WHEN` chains.
+- Implemented `GET /reports/departments-above-average` (Challenge 2,
+  Question 2): departments hiring above the 2021 average, ordered by
+  `hired DESC`. Uses `LEFT JOIN` (not `INNER JOIN`) so departments with
+  zero 2021 hires are correctly included in the average calculation —
+  covered by a dedicated regression test.
+- Implemented `GET /reports/hiring-distribution-stats` (bonus, not
+  required by the challenge): mean, median, standard deviation,
+  coefficient of variation, and per-department z-scores, to verify
+  whether the "above average" threshold is distorted by outlier
+  departments. Applied to the real project dataset: mean=136.92,
+  median=145.0, CV=0.48, highest department z-score≈1.19 (below the
+  |z|>2 heuristic) — confirms no single department dominates the
+  distribution.
+- Added `schemas/reports.py`: typed `response_model` for all three
+  endpoints (Swagger previously showed untyped `dict` responses for
+  these routes).
+- Added `docs/08-reports/reports.md`: design rationale, endpoint
+  contracts, and the statistical findings above.
+- Added `tests/test_reports_integration.py`: 9 integration tests against
+  a real Postgres connection (opt-in via `RUN_INTEGRATION_TESTS=1`),
+  using a small hand-verified synthetic dataset rather than the
+  project's real data. Covers the LEFT JOIN zero-hire-department
+  correctness, the 2021-year filter, and quarter pivot accuracy.
+  Documented gotcha: Postgres `NUMERIC` aggregates deserialize as
+  `Decimal`, not `float` — requires explicit casting when compared with
+  `pytest.approx()` (does not affect the actual API response, which
+  Pydantic already converts to `float`).
+- **Data hygiene**: identified and removed 7 test `departments`
+  (`id`: -1, 0, 501, 502, 601, 602, 603) and 1 test `hired_employees`
+  row (`id`: 9002) that had accumulated in the shared development
+  Postgres instance from manual Swagger testing across Phases 6–8.
+  Confirmed clean state (12 departments, 183 jobs, 1929 hired_employees)
+  before validating report output. Regenerated the AVRO backup
+  post-cleanup so `POST /restore` no longer reverts to the contaminated
+  state.
+- **Lesson learned**: `tests/test_restore_integration.py`'s fixture
+  operates against the same Postgres instance used for local
+  development (not an isolated test database) and truncates all three
+  tables before and after each test run. Running it emptied the dev
+  database entirely; recovered via the AVRO backup from Phase 8. Noted
+  as a risk for `feature/testing` (Phase 10) to address with a properly
+  isolated test database.

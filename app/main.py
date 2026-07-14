@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from mangum import Mangum
 
-from routers import employees, departments, jobs, backup, restore
+from routers import employees, departments, jobs, backup, restore, reports
 
 app = FastAPI(
     title="Globant Data Engineering Challenge API",
@@ -14,6 +14,7 @@ app.include_router(departments.router)
 app.include_router(jobs.router)
 app.include_router(backup.router)
 app.include_router(restore.router)
+app.include_router(reports.router)
 
 
 @app.get("/", tags=["Root"])
