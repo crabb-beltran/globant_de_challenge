@@ -1,54 +1,50 @@
 # Sprint Backlog
 
-**Active Phase:** SQL Reports (WBS Phase 9) — CLOSED
+**Active Phase:** Testing (WBS Phase 10) — CLOSED
 
-**Branch:** feature/sql-reports
+**Branch:** feature/testing
 
 ---
 
 ## Goal
 
-Implement Challenge 2's two required SQL reports (hiring by quarter,
-departments above average) plus one bonus statistical endpoint, reusing
-the query design drafted during Phase 6 exploration and held out of
-that PR.
+Consolidate the test suite built incrementally across Phases 5-9, and
+resolve a structural risk discovered during Phase 9: integration test
+fixtures connecting directly to the development database.
 
-### Implementation Tasks
+### Consolidation Tasks
 
-- [x] Reactivated `routers/reports.py` from Phase 6 draft
-- [x] Added `schemas/reports.py` — typed `response_model` for all
-      three endpoints
-- [x] Verified `GET /reports/hiring-by-quarter` output against real data
-- [x] Verified `GET /reports/departments-above-average` output against
-      real data
-- [x] Verified `GET /reports/hiring-distribution-stats` (bonus) output
-      and interpreted the statistical findings
+- [x] Ran full suite without `RUN_INTEGRATION_TESTS` — confirmed 28
+      passed, 13 skipped cleanly (Tier 1 default behavior)
+- [x] Ran full suite with `RUN_INTEGRATION_TESTS=1` — confirmed 41 passed
 
-### Data Hygiene (unplanned, discovered during this phase)
+### Database Isolation Tasks (priority — see incident)
 
-- [x] Diagnosed test-data contamination in `departments` (7 rows) and
-      `hired_employees` (1 row) accumulated from manual Swagger testing
-      across Phases 6–8
-- [x] Removed contaminated rows via targeted `DELETE` by exact ID
-      (verified no FK blocking first)
-- [x] Regenerated AVRO backup post-cleanup
+- [x] Added `db/config.py::get_test_database_url()`
+- [x] Built `tests/integration_conftest.py` with an isolated
+      `pg_test_session` fixture, auto-creating `globant_test` if missing
+- [x] Migrated `test_restore_integration.py` and
+      `test_reports_integration.py` off `db.session.SessionLocal`
+- [x] Added a structural safety guardrail (`assert "test" in db_name`)
+      after the isolation fix was itself bypassed once by a leftover
+      local fixture definition
+- [x] Added `test_integration_conftest_guardrail.py` — meta-test with
+      no live database dependency, proving the guardrail logic itself
 
-### Testing Tasks
+### Coverage Gap Closure
 
-- [x] Added `tests/test_reports_integration.py` — 9 integration tests
-      against real Postgres (opt-in, `RUN_INTEGRATION_TESTS=1`), using a
-      small hand-verified synthetic dataset
-- [x] Fixed a test bug (not a query bug): `Decimal`/`float` comparison
-      in `pytest.approx()` required explicit casting
+- [x] Added `test_db_constraint_violation_integration.py` — closes the
+      `DB_CONSTRAINT_VIOLATION` gap deferred since Phase 6
 
 ### Documentation Tasks
 
-- [x] Added `docs/08-reports/reports.md` — design rationale, endpoint
-      contracts, statistical findings on the real dataset
+- [x] Added `docs/09-testing/testing.md` — two-tier strategy, full
+      incident writeup
 
 Priority
 
-Medium
+High — this phase both consolidates existing coverage and resolves a
+recurring data-loss risk (two separate incidents during Phase 9).
 
 Status
 
@@ -62,7 +58,7 @@ A task is considered complete when:
 
 - [x] Code implemented
 - [x] Code reviewed
-- [x] Tests passed (9/9 integration)
+- [x] Tests passed (28 unit / 41 total)
 - [x] Documentation updated
 - [x] Docker verified
 - [ ] GitHub pushed

@@ -155,7 +155,7 @@ main
 | Validation Engine | ✅ |
 | Backup & Restore | ✅ |
 | SQL Reports | ✅ |
-| Testing | ⬜ |
+| Testing | ✅ |
 | CI/CD | ⬜ |
 | Deployment | ⬜ |
 | Project Closure | ⬜ |
