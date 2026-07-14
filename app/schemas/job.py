@@ -25,5 +25,7 @@ class Jobs(BaseModel):
     @classmethod
     def job_required(cls, value):
         if value is None or (isinstance(value, str) and value.strip() == ""):
-            raise ValueError("job name is required and cannot be empty or whitespace-only")
+            raise ValueError(
+                "job name is required and cannot be empty or whitespace-only"
+            )
         return value

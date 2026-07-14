@@ -19,7 +19,11 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker
 
 from db.base import Base
-from models import Department, Job, HiredEmployee  # noqa: F401 — registers models on Base.metadata
+from models import (
+    Department,
+    Job,
+    HiredEmployee,
+)  # noqa: F401 — registers models on Base.metadata
 
 
 @pytest.fixture()
@@ -45,7 +49,9 @@ def db_session():
     def _do_begin(conn):
         conn.exec_driver_sql("BEGIN")
 
-    engine.execute = getattr(engine, "execute", None)  # no-op, keeps linters quiet on older SQLAlchemy stubs
+    engine.execute = getattr(
+        engine, "execute", None
+    )  # no-op, keeps linters quiet on older SQLAlchemy stubs
     with engine.connect() as conn:
         conn.exec_driver_sql("PRAGMA foreign_keys=ON")
 

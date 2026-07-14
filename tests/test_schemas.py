@@ -15,10 +15,12 @@ from schemas.department import Departments
 from schemas.job import Jobs
 from schemas.hired_employee import HiredEmployeeSchema
 
-
 VALID_EMPLOYEE_KWARGS = dict(
-    id=1, name="Ana Torres", hire_datetime="2021-03-15T10:00:00Z",
-    department_id=1, job_id=1,
+    id=1,
+    name="Ana Torres",
+    hire_datetime="2021-03-15T10:00:00Z",
+    department_id=1,
+    job_id=1,
 )
 
 
@@ -74,7 +76,10 @@ class TestWhitespaceOnlyStringRejection:
 
     def test_non_whitespace_name_still_accepted(self):
         # regression guard: legitimate names with internal spaces must pass
-        assert Departments(id=1, department="Human Resources").department == "Human Resources"
+        assert (
+            Departments(id=1, department="Human Resources").department
+            == "Human Resources"
+        )
 
 
 class TestExtraFieldRejection:

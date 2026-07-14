@@ -2,9 +2,9 @@
 
 **Project:** Globant Data Engineering Challenge
 
-**Current Version:** v0.7.0
+**Current Version:** v0.8.0
 
-**Current Branch:** feature/testing
+**Current Branch:** feature/github-actions
 
 **Last Update:** 2026-07-14
 
@@ -24,7 +24,7 @@
 | Backup & Restore | 100% | feature/backup-restore | ✅ Completed |
 | SQL Reports | 100% | feature/sql-reports | ✅ Completed |
 | Testing | 100% | feature/testing | ✅ Completed |
-| CI/CD | 0% | feature/github-actions | ⏳ Pending |
+| CI/CD | 100% | feature/github-actions | ✅ Completed |
 | Deployment | 0% | feature/aws-deployment | ⏳ Pending |
 | Project Closure | 0% | feature/final-documentation | ⏳ Pending |
 | Release | 0% | release/v1.0 | ⏳ Pending |
@@ -35,17 +35,18 @@
 
 ## Active Branch
 
-feature/testing (pending merge to develop)
+feature/github-actions (pending merge to develop)
 
 ## Current Goal
 
-- Final review of consolidated test suite and database isolation
+- Confirm the workflow passes on GitHub after the first real push
+  (local validation only so far)
 - Merge into develop
-- Open feature/github-actions
+- Open feature/aws-deployment
 
 ## Next Branch
 
-feature/github-actions
+feature/aws-deployment
 
 ---
 

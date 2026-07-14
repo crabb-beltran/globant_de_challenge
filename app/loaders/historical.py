@@ -21,7 +21,9 @@ def load_existing_employee_ids(db_session) -> set[int]:
     return {row.id for row in db_session.query(HiredEmployee.id).all()}
 
 
-def process_row(row: list[str], valid_department_ids: set[int], valid_job_ids: set[int]):
+def process_row(
+    row: list[str], valid_department_ids: set[int], valid_job_ids: set[int]
+):
     """
     Validates one CSV row. Returns (validated_record, error) — exactly
     one of the two is always None.
@@ -78,7 +80,11 @@ def run_historical_load(csv_path: str) -> dict:
                 inserted_count += 1
 
         db.commit()
-        return {"inserted": inserted_count, "rejected": rejected_count, "skipped": skipped_count}
+        return {
+            "inserted": inserted_count,
+            "rejected": rejected_count,
+            "skipped": skipped_count,
+        }
 
     except Exception:
         db.rollback()

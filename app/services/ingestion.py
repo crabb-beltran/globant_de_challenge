@@ -13,7 +13,11 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from logging_.rejected_records import log_rejected_record
-from validators.exceptions import BusinessRuleViolation, DuplicateRecordError, ConstraintViolation
+from validators.exceptions import (
+    BusinessRuleViolation,
+    DuplicateRecordError,
+    ConstraintViolation,
+)
 
 
 def ingest_batch(
@@ -41,13 +45,17 @@ def ingest_batch(
                     validator(record)
 
             if record_id in existing_ids or record_id in seen_in_batch:
-                raise DuplicateRecordError(f"{id_field} {record_id} already exists (duplicate)")
+                raise DuplicateRecordError(
+                    f"{id_field} {record_id} already exists (duplicate)"
+                )
 
             try:
                 with db.begin_nested():  # SAVEPOINT — isolates this record only
                     db.add(model_cls(**field_map(record)))
             except IntegrityError as e:
-                raise ConstraintViolation(f"database constraint violation: {e.orig}") from e
+                raise ConstraintViolation(
+                    f"database constraint violation: {e.orig}"
+                ) from e
 
             seen_in_batch.add(record_id)
             inserted += 1
@@ -63,13 +71,23 @@ def ingest_batch(
             error_code = "VALIDATION_ERROR"
 
         if error_code:
-            log_rejected_record(row=record.model_dump(), error=f"[{error_code}] {error_message}", source="rest_api")
+            log_rejected_record(
+                row=record.model_dump(),
+                error=f"[{error_code}] {error_message}",
+                source="rest_api",
+            )
             rejected += 1
-            rejected_records.append({
-                "record": record.model_dump(),
-                "reason": error_message,
-                "reason_code": error_code,
-            })
+            rejected_records.append(
+                {
+                    "record": record.model_dump(),
+                    "reason": error_message,
+                    "reason_code": error_code,
+                }
+            )
 
     db.commit()
-    return {"inserted": inserted, "rejected": rejected, "rejected_records": rejected_records}
+    return {
+        "inserted": inserted,
+        "rejected": rejected,
+        "rejected_records": rejected_records,
+    }

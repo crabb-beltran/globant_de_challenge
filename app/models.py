@@ -23,6 +23,12 @@ class HiredEmployee(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    hire_datetime: Mapped[dt] = mapped_column("datetime", TIMESTAMP(timezone=True), nullable=False, index=True)
-    department_id: Mapped[int] = mapped_column(ForeignKey("departments.id", ondelete="RESTRICT"), nullable=False, index=True)
-    job_id: Mapped[int] = mapped_column(ForeignKey("jobs.id", ondelete="RESTRICT"), nullable=False, index=True)
+    hire_datetime: Mapped[dt] = mapped_column(
+        "datetime", TIMESTAMP(timezone=True), nullable=False, index=True
+    )
+    department_id: Mapped[int] = mapped_column(
+        ForeignKey("departments.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    job_id: Mapped[int] = mapped_column(
+        ForeignKey("jobs.id", ondelete="RESTRICT"), nullable=False, index=True
+    )

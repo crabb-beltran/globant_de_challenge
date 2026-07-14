@@ -15,16 +15,21 @@ ROW_MAPS = {
     "departments": lambda r: Department(id=r["id"], department=r["department"]),
     "jobs": lambda r: Job(id=r["id"], job=r["job"]),
     "hired_employees": lambda r: HiredEmployee(
-        id=r["id"], name=r["name"],
+        id=r["id"],
+        name=r["name"],
         hire_datetime=dt.strptime(r["hire_datetime"], "%Y-%m-%dT%H:%M:%SZ"),
-        department_id=r["department_id"], job_id=r["job_id"],
+        department_id=r["department_id"],
+        job_id=r["job_id"],
     ),
 }
 
 
 @router.post("")
 def run_restore_all(
-    confirm: bool = Query(False, description="Must be true — restores ALL three tables (TRUNCATE + reload each)."),
+    confirm: bool = Query(
+        False,
+        description="Must be true — restores ALL three tables (TRUNCATE + reload each).",
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -43,11 +48,12 @@ def run_restore_all(
         )
 
     missing = [
-        t for t in ROW_MAPS
-        if not os.path.exists(os.path.join(BACKUP_DIR, f"{t}.avro"))
+        t for t in ROW_MAPS if not os.path.exists(os.path.join(BACKUP_DIR, f"{t}.avro"))
     ]
     if missing:
-        raise HTTPException(404, f"missing backup file(s) for: {missing}. Run POST /backup first.")
+        raise HTTPException(
+            404, f"missing backup file(s) for: {missing}. Run POST /backup first."
+        )
 
     return restore_all(db, ROW_MAPS, BACKUP_DIR)
 
@@ -55,7 +61,9 @@ def run_restore_all(
 @router.post("/{table_name}")
 def run_restore_single(
     table_name: str,
-    confirm: bool = Query(False, description="Must be true — restore is destructive (TRUNCATE + reload)."),
+    confirm: bool = Query(
+        False, description="Must be true — restore is destructive (TRUNCATE + reload)."
+    ),
     db: Session = Depends(get_db),
 ):
     """
@@ -65,7 +73,9 @@ def run_restore_single(
     tables together, use POST /restore instead.
     """
     if table_name not in ROW_MAPS:
-        raise HTTPException(404, f"unknown table '{table_name}'. Valid: {list(ROW_MAPS)}")
+        raise HTTPException(
+            404, f"unknown table '{table_name}'. Valid: {list(ROW_MAPS)}"
+        )
 
     if not confirm:
         raise HTTPException(
@@ -76,7 +86,9 @@ def run_restore_single(
 
     avro_path = os.path.join(BACKUP_DIR, f"{table_name}.avro")
     if not os.path.exists(avro_path):
-        raise HTTPException(404, f"no backup file found at {avro_path}. Run POST /backup first.")
+        raise HTTPException(
+            404, f"no backup file found at {avro_path}. Run POST /backup first."
+        )
 
     try:
         return restore_table(db, table_name, avro_path, ROW_MAPS[table_name])

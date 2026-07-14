@@ -11,15 +11,21 @@ from sqlalchemy.orm import Session
 BACKUP_DIR = os.getenv("BACKUP_DIR", "/app/backups")
 
 DEPARTMENT_SCHEMA = {
-    "type": "record", "name": "Department", "namespace": "globant",
+    "type": "record",
+    "name": "Department",
+    "namespace": "globant",
     "fields": [{"name": "id", "type": "int"}, {"name": "department", "type": "string"}],
 }
 JOB_SCHEMA = {
-    "type": "record", "name": "Job", "namespace": "globant",
+    "type": "record",
+    "name": "Job",
+    "namespace": "globant",
     "fields": [{"name": "id", "type": "int"}, {"name": "job", "type": "string"}],
 }
 HIRED_EMPLOYEE_SCHEMA = {
-    "type": "record", "name": "HiredEmployee", "namespace": "globant",
+    "type": "record",
+    "name": "HiredEmployee",
+    "namespace": "globant",
     "fields": [
         {"name": "id", "type": "int"},
         {"name": "name", "type": "string"},
@@ -33,7 +39,9 @@ HIRED_EMPLOYEE_SCHEMA = {
 }
 
 
-def export_table(db: Session, model_cls, schema: dict, table_name: str, record_map) -> dict:
+def export_table(
+    db: Session, model_cls, schema: dict, table_name: str, record_map
+) -> dict:
     """
     record_map: callable(row) -> dict matching `schema`'s fields exactly.
     Writes {table_name}.avro to BACKUP_DIR, overwriting any prior backup

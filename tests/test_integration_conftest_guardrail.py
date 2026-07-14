@@ -16,6 +16,7 @@ def test_guardrail_rejects_non_test_database_name():
     without needing a real Postgres connection — proves the guardrail
     logic is sound independent of infrastructure availability.
     """
+
     def _fake_pg_test_session(db_url: str):
         db_name = db_url.rsplit("/", 1)[-1]
         assert "test" in db_name.lower(), (

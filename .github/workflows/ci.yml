@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main]
+
+env:
+  DB_USER: ci_user
+  DB_PASSWORD: ci_password
+  DB_HOST: localhost
+  DB_PORT: 5432
+  DB_NAME: globant_de_challenge
+  TEST_DB_NAME: globant_test
+
+jobs:
+  quality:
+    name: Lint (Black + Flake8)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install lint tools
+        run: pip install black flake8
+
+      - name: Check formatting (Black)
+        run: black --check app/ tests/
+
+      - name: Lint (Flake8)
+        run: flake8 --config=.flake8 app/ tests/
+
+  test:
+    name: Test Suite (Unit + Integration)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ${{ env.DB_USER }}
+          POSTGRES_PASSWORD: ${{ env.DB_PASSWORD }}
+          POSTGRES_DB: ${{ env.DB_NAME }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install --break-system-packages -r requirements.txt
+
+      - name: Run Tier 1 — unit tests (SQLite, no Postgres dependency)
+        working-directory: app
+        run: python -m pytest ../tests/ -v
+
+      - name: Run Tier 2 — integration tests (real Postgres, isolated globant_test)
+        working-directory: app
+        env:
+          RUN_INTEGRATION_TESTS: "1"
+        run: python -m pytest ../tests/ -v
+
+  docker-build:
+    name: Docker Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (no push — deployment is a separate phase)
+        run: docker build -t globant-de-challenge-api:ci-check .

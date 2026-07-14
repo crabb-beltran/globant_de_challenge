@@ -4,7 +4,10 @@ from sqlalchemy.orm import Session
 from db.session import get_db
 from models import Department, Job, HiredEmployee
 from services.backup import (
-    export_table, DEPARTMENT_SCHEMA, JOB_SCHEMA, HIRED_EMPLOYEE_SCHEMA,
+    export_table,
+    DEPARTMENT_SCHEMA,
+    JOB_SCHEMA,
+    HIRED_EMPLOYEE_SCHEMA,
 )
 
 router = APIRouter(prefix="/backup", tags=["Backup"])
@@ -19,19 +22,30 @@ def run_backup(db: Session = Depends(get_db)):
 
     results = [
         export_table(
-            db, Department, DEPARTMENT_SCHEMA, "departments",
+            db,
+            Department,
+            DEPARTMENT_SCHEMA,
+            "departments",
             lambda row: {"id": row.id, "department": row.department},
         ),
         export_table(
-            db, Job, JOB_SCHEMA, "jobs",
+            db,
+            Job,
+            JOB_SCHEMA,
+            "jobs",
             lambda row: {"id": row.id, "job": row.job},
         ),
         export_table(
-            db, HiredEmployee, HIRED_EMPLOYEE_SCHEMA, "hired_employees",
+            db,
+            HiredEmployee,
+            HIRED_EMPLOYEE_SCHEMA,
+            "hired_employees",
             lambda row: {
-                "id": row.id, "name": row.name,
+                "id": row.id,
+                "name": row.name,
                 "hire_datetime": row.hire_datetime.strftime("%Y-%m-%dT%H:%M:%SZ"),
-                "department_id": row.department_id, "job_id": row.job_id,
+                "department_id": row.department_id,
+                "job_id": row.job_id,
             },
         ),
     ]

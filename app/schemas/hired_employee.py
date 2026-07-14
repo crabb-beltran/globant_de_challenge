@@ -1,10 +1,7 @@
 import re
 from pydantic import BaseModel, ConfigDict, field_validator
 
-
-ISO_DATETIME_PATTERN = re.compile(
-    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
-)
+ISO_DATETIME_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$")
 
 
 class HiredEmployeeSchema(BaseModel):

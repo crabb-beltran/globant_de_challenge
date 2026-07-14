@@ -1,50 +1,48 @@
 # Sprint Backlog
 
-**Active Phase:** Testing (WBS Phase 10) — CLOSED
+**Active Phase:** CI/CD (WBS Phase 11) — CLOSED
 
-**Branch:** feature/testing
+**Branch:** feature/github-actions
 
 ---
 
 ## Goal
 
-Consolidate the test suite built incrementally across Phases 5-9, and
-resolve a structural risk discovered during Phase 9: integration test
-fixtures connecting directly to the development database.
+Automate quality checks (formatting, linting) and the full two-tier
+test suite on every PR and push to `develop`/`main`, plus a Docker
+build sanity check — without adding deployment automation yet (Phase 12).
 
-### Consolidation Tasks
+### Implementation Tasks
 
-- [x] Ran full suite without `RUN_INTEGRATION_TESTS` — confirmed 28
-      passed, 13 skipped cleanly (Tier 1 default behavior)
-- [x] Ran full suite with `RUN_INTEGRATION_TESTS=1` — confirmed 41 passed
+- [x] Added `.github/workflows/ci.yml` with 3 parallel jobs
+- [x] Configured a Postgres service container for Tier 2 integration
+      tests in CI, mirroring the local `globant_test` isolation strategy
+- [x] Added `.flake8` at repository root
 
-### Database Isolation Tasks (priority — see incident)
+### Quality Debt Cleanup (discovered during this phase)
 
-- [x] Added `db/config.py::get_test_database_url()`
-- [x] Built `tests/integration_conftest.py` with an isolated
-      `pg_test_session` fixture, auto-creating `globant_test` if missing
-- [x] Migrated `test_restore_integration.py` and
-      `test_reports_integration.py` off `db.session.SessionLocal`
-- [x] Added a structural safety guardrail (`assert "test" in db_name`)
-      after the isolation fix was itself bypassed once by a leftover
-      local fixture definition
-- [x] Added `test_integration_conftest_guardrail.py` — meta-test with
-      no live database dependency, proving the guardrail logic itself
+- [x] Applied Black formatting project-wide (34 files, first
+      enforcement since `conventions.md` specified it)
+- [x] Removed 3 genuine unused imports found by Flake8
+- [x] Fixed 1 over-length line (`main.py`)
+- [x] Added `black`, `flake8` to `requirements.txt`
 
-### Coverage Gap Closure
+### Incident Resolution
 
-- [x] Added `test_db_constraint_violation_integration.py` — closes the
-      `DB_CONSTRAINT_VIOLATION` gap deferred since Phase 6
+- [x] Diagnosed and fixed `per-file-ignores` pattern matching failure
+      (`*/` prefix + relative paths with `..` never matched under
+      `fnmatch`) — fixed via base-filename-only patterns
+- [x] Verified identical behavior invoking Flake8 from `/app` (local,
+      relative paths) and from the repository root (matching CI's
+      invocation)
 
 ### Documentation Tasks
 
-- [x] Added `docs/09-testing/testing.md` — two-tier strategy, full
-      incident writeup
+- [x] Added `docs/11-cicd/cicd.md` — job breakdown and incident writeup
 
 Priority
 
-High — this phase both consolidates existing coverage and resolves a
-recurring data-loss risk (two separate incidents during Phase 9).
+Medium
 
 Status
 
@@ -58,8 +56,12 @@ A task is considered complete when:
 
 - [x] Code implemented
 - [x] Code reviewed
-- [x] Tests passed (28 unit / 41 total)
+- [x] Tests passed (28 unit / 42 total, confirmed locally under the
+      exact commands the workflow runs)
 - [x] Documentation updated
-- [x] Docker verified
+- [x] Docker verified (build validation job; full local Compose stack
+      unaffected)
 - [ ] GitHub pushed
-- [ ] Pull Request merged
+- [ ] Pull Request merged — **first real confirmation that the
+      workflow passes on GitHub itself is still pending**, since
+      everything above was validated locally by design

@@ -24,9 +24,11 @@ pytestmark = pytest.mark.skipif(
 
 def _employee_field_map(record: HiredEmployeeSchema) -> dict:
     return {
-        "id": record.id, "name": record.name,
+        "id": record.id,
+        "name": record.name,
         "hire_datetime": dt.strptime(record.hire_datetime, "%Y-%m-%dT%H:%M:%SZ"),
-        "department_id": record.department_id, "job_id": record.job_id,
+        "department_id": record.department_id,
+        "job_id": record.job_id,
     }
 
 
@@ -39,10 +41,12 @@ class TestDbConstraintViolation:
         but the real INSERT fails at the database constraint level —
         exactly the scenario DB_CONSTRAINT_VIOLATION exists to catch.
         """
-        pg_session.add_all([
-            Department(id=1, department="Engineering"),
-            Job(id=1, job="Analyst"),
-        ])
+        pg_session.add_all(
+            [
+                Department(id=1, department="Engineering"),
+                Job(id=1, job="Analyst"),
+            ]
+        )
         pg_session.commit()
 
         # existing_ids computed BEFORE the "concurrent" insert below —
@@ -51,20 +55,33 @@ class TestDbConstraintViolation:
         assert 500 not in existing_ids
 
         # a "concurrent" process inserts id=500 after the stale read
-        pg_session.add(HiredEmployee(
-            id=500, name="Concurrent Insert", hire_datetime=dt(2021, 1, 1),
-            department_id=1, job_id=1,
-        ))
+        pg_session.add(
+            HiredEmployee(
+                id=500,
+                name="Concurrent Insert",
+                hire_datetime=dt(2021, 1, 1),
+                department_id=1,
+                job_id=1,
+            )
+        )
         pg_session.commit()
 
         record = HiredEmployeeSchema(
-            id=500, name="Race Loser", hire_datetime="2021-01-02T00:00:00Z",
-            department_id=1, job_id=1,
+            id=500,
+            name="Race Loser",
+            hire_datetime="2021-01-02T00:00:00Z",
+            department_id=1,
+            job_id=1,
         )
 
         result = ingest_batch(
-            db=pg_session, records=[record], model_cls=HiredEmployee, id_field="id",
-            field_map=_employee_field_map, existing_ids=existing_ids, validators=None,
+            db=pg_session,
+            records=[record],
+            model_cls=HiredEmployee,
+            id_field="id",
+            field_map=_employee_field_map,
+            existing_ids=existing_ids,
+            validators=None,
         )
 
         assert result["inserted"] == 0
@@ -72,4 +89,7 @@ class TestDbConstraintViolation:
         assert result["rejected_records"][0]["reason_code"] == "DB_CONSTRAINT_VIOLATION"
 
         # confirm the original concurrent row is untouched, no data corruption
-        assert pg_session.query(HiredEmployee).filter_by(id=500).one().name == "Concurrent Insert"
+        assert (
+            pg_session.query(HiredEmployee).filter_by(id=500).one().name
+            == "Concurrent Insert"
+        )

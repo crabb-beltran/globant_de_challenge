@@ -29,7 +29,10 @@ from datetime import datetime as dt
 from integration_conftest import pg_test_session as pg_session
 from models import Department, Job, HiredEmployee
 from routers.reports import (
-    QUARTERLY_HIRES_SQL, DEPARTMENTS_ABOVE_AVG_SQL, HIRING_DISTRIBUTION_STATS_SQL, Z_SCORE_SQL,
+    QUARTERLY_HIRES_SQL,
+    DEPARTMENTS_ABOVE_AVG_SQL,
+    HIRING_DISTRIBUTION_STATS_SQL,
+    Z_SCORE_SQL,
 )
 
 pytestmark = pytest.mark.skipif(
@@ -53,22 +56,40 @@ def seeded_dataset(pg_session):
     Expected: mean = (3+1+0)/3 = 1.333..., only Engineering (3) is
     above that average.
     """
-    pg_session.add_all([
-        Department(id=1, department="Engineering"),
-        Department(id=2, department="Sales"),
-        Department(id=3, department="Legal"),
-        Job(id=1, job="Analyst"),
-    ])
+    pg_session.add_all(
+        [
+            Department(id=1, department="Engineering"),
+            Department(id=2, department="Sales"),
+            Department(id=3, department="Legal"),
+            Job(id=1, job="Analyst"),
+        ]
+    )
     pg_session.flush()
 
-    pg_session.add_all([
-        HiredEmployee(id=1, name="A", hire_datetime=dt(2021, 1, 15), department_id=1, job_id=1),
-        HiredEmployee(id=2, name="B", hire_datetime=dt(2021, 2, 10), department_id=1, job_id=1),
-        HiredEmployee(id=3, name="C", hire_datetime=dt(2021, 8, 1), department_id=1, job_id=1),
-        HiredEmployee(id=4, name="D", hire_datetime=dt(2021, 5, 5), department_id=2, job_id=1),
-        # outside 2021 — must be excluded by every report query
-        HiredEmployee(id=5, name="E", hire_datetime=dt(2020, 12, 31), department_id=1, job_id=1),
-    ])
+    pg_session.add_all(
+        [
+            HiredEmployee(
+                id=1, name="A", hire_datetime=dt(2021, 1, 15), department_id=1, job_id=1
+            ),
+            HiredEmployee(
+                id=2, name="B", hire_datetime=dt(2021, 2, 10), department_id=1, job_id=1
+            ),
+            HiredEmployee(
+                id=3, name="C", hire_datetime=dt(2021, 8, 1), department_id=1, job_id=1
+            ),
+            HiredEmployee(
+                id=4, name="D", hire_datetime=dt(2021, 5, 5), department_id=2, job_id=1
+            ),
+            # outside 2021 — must be excluded by every report query
+            HiredEmployee(
+                id=5,
+                name="E",
+                hire_datetime=dt(2020, 12, 31),
+                department_id=1,
+                job_id=1,
+            ),
+        ]
+    )
     pg_session.commit()
     return pg_session
 
@@ -102,7 +123,9 @@ class TestDepartmentsAboveAverage:
         assert rows[0]["department"] == "Engineering"
         assert rows[0]["hired"] == 3
 
-    def test_zero_hire_department_counted_in_average_via_left_join(self, seeded_dataset):
+    def test_zero_hire_department_counted_in_average_via_left_join(
+        self, seeded_dataset
+    ):
         rows = seeded_dataset.execute(DEPARTMENTS_ABOVE_AVG_SQL).mappings().all()
         assert len(rows) == 1  # confirms the correct (LEFT JOIN) average was used
 
