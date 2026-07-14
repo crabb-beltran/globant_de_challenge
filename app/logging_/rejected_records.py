@@ -22,18 +22,18 @@ if not logger.handlers:
     logger.addHandler(handler)
 
 
-def log_rejected_record(row: list[str], error: str) -> None:
+def log_rejected_record(row, error: str, source: str = "historical_loader") -> None:
     """
     Logs a single rejected record as a structured JSON line.
 
-    Args:
-        row: the raw CSV row (list of strings), unmodified — preserves
-             exactly what was rejected, for auditability.
-        error: the validation error message (from Pydantic or business_rules).
+    source: origin of the rejection — "historical_loader" (CSV batch),
+            "reference_data_loader" (departments/jobs CSV), or
+            "rest_api" (Phase 6 ingestion endpoints). Kept as a parameter
+            (not hardcoded) so callers stay attributable in CloudWatch.
     """
     entry = {
         "event": "record_rejected",
-        "source": "historical_loader",
+        "source": source,
         "raw_row": row,
         "reason": error,
     }

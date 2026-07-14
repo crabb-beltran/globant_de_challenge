@@ -113,13 +113,10 @@ Status
 - Employees
 - Departments
 - Jobs
-- Reports
-- Backup
-- Restore
 
 Status
 
-- [ ]
+- [x] Completed
 
 ---
 
