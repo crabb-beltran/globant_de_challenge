@@ -81,3 +81,49 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
 - Added **ADR-010**: skip-if-exists idempotency strategy for both loaders, chosen over upsert or full-replace.
 - Corrected initial data quality diagnosis after discovering a CRLF-related blind spot in shell-based `awk` checks (see `risk-register.md` R-024) — final count: 70 invalid records out of 1999 (3.50%), not the initially reported 54.
 - Successfully loaded: 12 departments, 183 jobs, 1929 hired employees (70 rejected, 0 skipped on first run).
+
+#### REST API
+
+- Implemented `services/ingestion.py`: shared batch ingestion service used
+  by all three ingestion endpoints (thin router / fat service pattern),
+  reusing the FK-existence validators from `validators/business_rules.py`
+  (Fase 5) without duplication.
+- Implemented `routers/employees.py`, `routers/departments.py`,
+  `routers/jobs.py`: `POST` batch endpoints (1-1000 records), returning
+  `207 Multi-Status` with per-record partial success — a single invalid
+  record no longer blocks the rest of the batch (contrast with the
+  all-or-nothing historical CSV loader, Fase 5).
+- Implemented per-record transactional isolation via `db.begin_nested()`
+  (SAVEPOINT), so a database-level constraint violation on one record
+  does not roll back valid records in the same batch.
+- Implemented `validators/exceptions.py`: typed exception hierarchy
+  (`ForeignKeyViolation`, `DuplicateRecordError`, `ConstraintViolation`)
+  carrying a fixed `reason_code`, decoupling structured rejection
+  reporting from free-text error messages.
+- Decision: duplicate `id` in an API request is **rejected**
+  (`DUPLICATE_ID`), diverging from the CSV loaders' skip-if-exists
+  idempotency (ADR-010) — documented in `docs/04-api/api.md`.
+- Registered all three routers in `app/main.py` (version bumped to
+  `0.2.0`). Reports/Backup/Restore endpoints intentionally excluded from
+  this phase — see WBS scope realignment below.
+- Fixed `logging_/rejected_records.py`: added the missing `source`
+  parameter (with a backward-compatible default), preventing a latent
+  `TypeError` that `loaders/reference_data.py` was already calling but
+  had never triggered in practice.
+- Added `docs/04-api/api.md` (endpoint contracts, design rationale) and
+  `docs/05-validation/validation.md` (two-layer validation model:
+  Pydantic field-level vs business-rule DB-state validation).
+- Added `tests/test_ingestion_service.py` and `tests/conftest.py`: unit
+  tests covering clean batch insertion, FK violations, duplicate
+  detection (both against existing DB rows and within the same batch),
+  and partial-batch isolation — using in-memory SQLite with SAVEPOINT
+  support enabled via SQLAlchemy event listeners. Integration testing
+  against real Postgres (`DB_CONSTRAINT_VIOLATION` path) deferred to
+  Fase 10.
+
+#### Project Governance
+
+- Realigned `wbs.md` Fase 6 scope to Employees/Departments/Jobs only,
+  matching the branch-per-feature granularity already defined in
+  `conventions.md`/`project-status.md` (Reports, Backup, and Restore
+  remain their own WBS phases with dedicated branches).
