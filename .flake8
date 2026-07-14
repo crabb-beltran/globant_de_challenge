@@ -1,0 +1,10 @@
+[flake8]
+max-line-length = 100
+exclude = .git,__pycache__,app/alembic/versions
+per-file-ignores =
+    conftest.py:E402,F401
+    integration_conftest.py:E402
+    env.py:E402,F401
+    test_restore_integration.py:F401,F811
+    test_reports_integration.py:F401,F811
+    test_db_constraint_violation_integration.py:F401,F811

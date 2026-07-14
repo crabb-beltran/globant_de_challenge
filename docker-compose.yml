@@ -1,0 +1,88 @@
+name: globant_de_challenge
+services:
+  # Base de datos PostgreSQL (equivalente local a AWS RDS)
+  postgres_rds:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT_HOST:-5432}:5432"
+    networks:
+      - red_aplicacion
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # AWS LocalStack (S3 + SSM Parameter Store, según ADR-005)
+  localstack:
+    image: localstack/localstack:3.0
+    env_file:
+      - .env
+    environment:
+      - SERVICES=s3,ssm
+      - AWS_DEFAULT_REGION=us-east-1
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+    networks:
+      - red_aplicacion
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Servicio API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - AWS_ENDPOINT_URL=${AWS_ENDPOINT_URL}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./app:/app
+      - ./tests:/tests
+      - ./datasets:/datasets
+      - ./backups:/app/backups
+      - ./.flake8:/app/.flake8
+    networks:
+      - red_aplicacion
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgres_rds:
+        condition: service_healthy
+      localstack:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  localstack_data:
+
+networks:
+  red_aplicacion:
+    driver: bridge
