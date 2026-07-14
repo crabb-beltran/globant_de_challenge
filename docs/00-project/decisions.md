@@ -465,3 +465,89 @@ skipped (counted separately from both "inserted" and "rejected").
 
 - Does not support correcting already-loaded records via re-run; a
   correction requires a separate, explicit mechanism (future API endpoint).
+
+
+# ADR-011
+
+## Title
+
+Validation Engine — Decentralized Two-Layer Model, No Separate Component
+
+### Status
+
+Accepted
+
+### Context
+
+`wbs.md` Phase 7 originally scoped a "Validation Engine" covering six rules:
+required fields, ISO datetime format, FK validation, batch size, null
+validation, and duplicate validation. By the time this phase was opened,
+all six rules were already implemented — distributed across Phase 5
+(Pydantic schemas, `validators/business_rules.py`) and Phase 6
+(`services/ingestion.py`, router-level batch size checks). No dedicated
+"validation engine" module existed, nor was one clearly missing.
+
+The question this ADR answers: should Phase 7 build a centralized
+validation engine to consolidate these rules into a single component, or
+formalize the existing two-layer split as the intended design?
+
+### Alternatives
+
+| Option | Pros | Cons |
+|---------|------|------|
+| Centralized validation engine (new module, all rules routed through it) | Single place to read all validation logic; easier onboarding for a new contributor | Duplicates responsibility already correctly split by *when* a rule can be checked (structural vs DB-state); would require re-wiring schemas and services that already work; directly contradicts R-016 (Overengineering) |
+| Decentralized two-layer model (current state, formalized) | No new abstraction; validation lives where the information needed to perform it already lives (Pydantic has the raw payload, `business_rules.py`/`ingestion.py` has DB session access) | Requires reading two locations (`schemas/`, `validators/` + `services/ingestion.py`) to see the full picture of "what makes a record valid" |
+
+### Decision
+
+Keep the decentralized two-layer model:
+
+- **Layer 1 (Pydantic schemas, `schemas/*.py`)** — structural validation
+  that requires only the request payload: required fields, null/whitespace
+  checks, ISO 8601 datetime format, positive-integer IDs, rejection of
+  unexpected fields (`extra="forbid"`). Failure here rejects the entire
+  request with `422` — these are client-side errors, not data quality
+  issues to log and continue past.
+- **Layer 2 (`validators/business_rules.py` + `services/ingestion.py`)**
+  — validation that requires current database state: FK existence,
+  duplicate ID detection. Failure here rejects only the offending record
+  within a batch (`207`, `reason_code`), isolated via SAVEPOINT.
+
+No new module was created. Phase 7's actual deliverable was a **gap audit**
+against the six original rules, which surfaced four real omissions —
+negative/zero IDs, whitespace-only strings, unexpected fields, and (upon
+verification) confirmed acceptable behavior for numeric-string ID coercion
+and ISO offset rejection — all fixed within the existing schemas, not a
+new component.
+
+### Rationale
+
+- The two layers differ fundamentally in *what information is required*
+  to evaluate them (payload alone vs payload + DB state) and in *failure
+  semantics* (whole-request rejection vs per-record rejection within a
+  successful batch). Merging them into one "engine" would need to
+  internally re-implement this same split anyway — the abstraction would
+  add a layer of indirection without removing any actual logic.
+- Consistent with `risk-register.md` R-016 (Scope creep / Overengineering,
+  rated High probability and High impact) and the challenge's explicit
+  evaluation guidance to prioritize correctness and clarity over
+  over-engineering.
+- `docs/05-validation/validation.md` already documents the two layers
+  explicitly, giving the "single place to understand validation" benefit
+  a centralized engine would have provided, without the structural cost.
+
+### Consequences
+
+**Positive**
+
+- No unnecessary abstraction introduced; existing, already-tested code
+  paths (Phase 5, Phase 6) remain untouched in structure.
+- Gap audit surfaced and fixed real omissions without needing to
+  understand or migrate a new component.
+
+**Negative**
+
+- A future contributor unfamiliar with the project must read two
+  locations (schemas + business_rules/ingestion service) to get the full
+  picture of validation behavior, rather than one. Mitigated by
+  `validation.md` serving as the single documentation entry point.

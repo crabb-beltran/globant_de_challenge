@@ -127,3 +127,40 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
   matching the branch-per-feature granularity already defined in
   `conventions.md`/`project-status.md` (Reports, Backup, and Restore
   remain their own WBS phases with dedicated branches).
+
+  #### Validation Engine
+
+- Audited existing validation coverage (built across Fase 5 and Fase 6)
+  against the six rules originally scoped in `wbs.md` Phase 7. Confirmed
+  all six already had a working implementation, distributed across
+  Pydantic schemas (structural) and `validators/business_rules.py` /
+  `services/ingestion.py` (DB-state) — no centralized validation engine
+  was missing.
+- Fixed four real gaps found during the audit, all at the Pydantic
+  schema level (`schemas/department.py`, `schemas/job.py`,
+  `schemas/hired_employee.py`):
+  - Negative or zero `id`/`department_id`/`job_id` values were
+    previously accepted and inserted; now rejected with `422`.
+  - Whitespace-only strings (e.g. `"   "`) passed the previous
+    `value == ""` check; now rejected via `.strip()` comparison.
+  - Unexpected/extra fields in the request body were silently ignored;
+    now rejected with `422` (`extra_forbidden`) via
+    `model_config = ConfigDict(extra="forbid")`, per the challenge's
+    requirement that non-compliant records must not be inserted.
+- Confirmed two audited cases as correct existing behavior, unchanged:
+  ISO 8601 datetime with a non-`Z` UTC offset remains rejected (scope
+  decision, not a gap); numeric-string IDs (e.g. `"603"`) remain
+  accepted via Pydantic's standard type coercion.
+- Added **ADR-011**: documented the decision to keep validation as a
+  decentralized two-layer model (Pydantic structural validation +
+  DB-state business rules) rather than building a separate centralized
+  validation engine component — consistent with `risk-register.md`
+  R-016 (Overengineering).
+- Updated `docs/05-validation/validation.md` with the full Layer 1 rule
+  set, the gap audit findings table, and design rationale for the two
+  confirmed non-issues.
+- Added `tests/test_schemas.py`: 19 regression tests covering the three
+  fixed gaps (positive ID enforcement, whitespace rejection, extra
+  field rejection) plus the two confirmed non-issues (ISO offset
+  rejection, numeric string coercion), locking in current behavior
+  against future silent changes. Full suite: 27/27 passing.

@@ -151,8 +151,8 @@ main
 | AWS Infrastructure | ✅ |
 | Database | ✅ |
 | Historical Data Migration | ✅ |
-| REST API | ⬜ |
-| Validation Engine | ⬜ |
+| REST API | ✅ |
+| Validation Engine | ✅ |
 | Backup & Restore | ⬜ |
 | SQL Reports | ⬜ |
 | Testing | ⬜ |
