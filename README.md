@@ -157,8 +157,16 @@ main
 | SQL Reports | ✅ |
 | Testing | ✅ |
 | CI/CD | ✅ |
-| Deployment | ⬜ |
-| Project Closure | ⬜ |
+| Deployment | ⏸️ Deferred post-submission |
+| Project Closure | ✅ |
+
+**Submission note**: 11 of 13 WBS phases complete. The application runs
+fully locally via `docker-compose up --build`, satisfying the
+challenge's core Docker requirement. Cloud deployment (AWS Lambda/API
+Gateway) is architecturally decided (see ADR-003) but deliberately
+deferred rather than rushed — see
+[docs/00-project/project-status.md](docs/00-project/project-status.md)
+for the submission note.
 
 For real-time status, see [docs/00-project/project-status.md](docs/00-project/project-status.md).
 
