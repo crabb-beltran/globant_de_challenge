@@ -1,67 +1,38 @@
 # Sprint Backlog
 
-**Active Phase:** CI/CD (WBS Phase 11) — CLOSED
+**Active Phase:** Project Closure (WBS Phase 13) — SUBMITTED, IN PROGRESS
 
-**Branch:** feature/github-actions
+**Branch:** feature/final-documentation
 
 ---
 
-## Goal
+## Submission Scope
 
-Automate quality checks (formatting, linting) and the full two-tier
-test suite on every PR and push to `develop`/`main`, plus a Docker
-build sanity check — without adding deployment automation yet (Phase 12).
+Phases 0–11 complete (project setup through CI/CD). Phase 12 (AWS
+Deployment) deferred post-submission — see `project-status.md`
+Submission Note for rationale.
 
-### Implementation Tasks
+### Closure Tasks Completed for Submission
 
-- [x] Added `.github/workflows/ci.yml` with 3 parallel jobs
-- [x] Configured a Postgres service container for Tier 2 integration
-      tests in CI, mirroring the local `globant_test` isolation strategy
-- [x] Added `.flake8` at repository root
+- [x] `README.md` — Project Status table synced through Phase 11
+- [x] `changelog.md` — full history through Phase 11
+- [x] `decisions.md` — 12 ADRs, including 2 reconciliation ADRs
+      (ADR-011 validation engine, ADR-012 backup storage location)
+- [x] `risk-register.md` — 24 risks tracked, including 4 discovered
+      during implementation (R-021 through R-024)
+- [x] All 9 completed WBS phases have dedicated documentation
+      (`docs/01` through `docs/11`)
+- [x] Full test suite passing: 28 unit / 42 total (unit + integration)
+- [x] CI pipeline verified green on GitHub Actions (3 jobs)
 
-### Quality Debt Cleanup (discovered during this phase)
+### Deferred to Post-Submission
 
-- [x] Applied Black formatting project-wide (34 files, first
-      enforcement since `conventions.md` specified it)
-- [x] Removed 3 genuine unused imports found by Flake8
-- [x] Fixed 1 over-length line (`main.py`)
-- [x] Added `black`, `flake8` to `requirements.txt`
-
-### Incident Resolution
-
-- [x] Diagnosed and fixed `per-file-ignores` pattern matching failure
-      (`*/` prefix + relative paths with `..` never matched under
-      `fnmatch`) — fixed via base-filename-only patterns
-- [x] Verified identical behavior invoking Flake8 from `/app` (local,
-      relative paths) and from the repository root (matching CI's
-      invocation)
-
-### Documentation Tasks
-
-- [x] Added `docs/11-cicd/cicd.md` — job breakdown and incident writeup
-
-Priority
-
-Medium
+- [ ] Phase 12 — AWS Deployment (Lambda, API Gateway, ECR push)
+- [ ] Final `docs/12-deployment/deployment.md` runbook execution
+      (architecture already decided per ADR-003, not yet executed)
+- [ ] `release/v1.0` tag
 
 Status
 
-✅ Completed — 2026-07-14
-
----
-
-# Definition of Done (DoD)
-
-A task is considered complete when:
-
-- [x] Code implemented
-- [x] Code reviewed
-- [x] Tests passed (28 unit / 42 total, confirmed locally under the
-      exact commands the workflow runs)
-- [x] Documentation updated
-- [x] Docker verified (build validation job; full local Compose stack
-      unaffected)
-- [ ] GitHub pushed
-- [ ] Pull Request merged — **first real confirmation that the
-      workflow passes on GitHub itself is still pending**, since
-      everything above was validated locally by design
+✅ Submitted — 2026-07-14. Development continues; deployment phase to
+follow before project presentation.

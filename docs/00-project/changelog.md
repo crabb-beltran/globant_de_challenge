@@ -338,3 +338,14 @@ The format is based on **Keep a Changelog** and the project follows **Semantic V
 - Added `docs/11-cicd/cicd.md`: job breakdown, CI-vs-local environment
   differences (service container vs docker-compose), and the
   `per-file-ignores` incident.
+
+
+  #### Project Closure (Submission)
+
+- Marked Phase 12 (AWS Deployment) as deliberately deferred
+  post-submission — documented rationale in `project-status.md` and
+  `backlog.md`, consistent with `risk-register.md` R-015/R-016
+  (prioritize core correctness over rushing every phase under a hard
+  deadline).
+- Synced `README.md`, `project-status.md`, `backlog.md` to reflect
+  final submission scope: Phases 0–11 complete, Phase 12 deferred.
