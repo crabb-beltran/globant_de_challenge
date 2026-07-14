@@ -24,28 +24,56 @@ The project focuses on designing and implementing a cloud-native data ingestion 
 
 The proposed solution follows a serverless-first architecture using AWS managed services.
 
-| Component | Technology |
+## Core Stack
+
+| Layer | Technology |
 |------------|------------|
-| API | FastAPI |
-| Compute | AWS Lambda (Container Image) |
-| Database | Amazon RDS PostgreSQL |
-| Storage | Amazon S3 |
-| Logging | CloudWatch Logs |
-| Secrets | AWS Systems Manager Parameter Store |
-| Container | Docker |
-| CI/CD | GitHub Actions |
-| IaC (optional) | Terraform (Future Improvement) |
+| API Framework | FastAPI (ADR-002) |
+| API Documentation | Swagger UI / OpenAPI (auto-generated at `/docs`) |
+| Data Validation | Pydantic v2 |
+| ORM | SQLAlchemy 2.0 |
+| Database Migrations | Alembic |
+| Database | PostgreSQL (ADR-001) |
+| Database Driver | psycopg2 |
+| Backup Serialization | fastavro (ADR-008) |
+| Compute (planned) | AWS Lambda, Container Image (ADR-003) |
+| Lambda Adapter | Mangum |
+| Storage | Amazon S3 (provisioned, Phase 3) |
+| Logging | CloudWatch Logs (ADR-004) |
+| Secrets (planned) | AWS Systems Manager Parameter Store (ADR-005) — currently `.env`, documented deferred work |
+| Container | Docker / Docker Compose |
+| CI/CD | GitHub Actions (lint, unit + integration tests, Docker build) |
+
+## Testing & Quality Tooling
+
+| Tool | Purpose |
+|------|---------|
+| pytest | Unit and integration test runner |
+| SQLite (in-memory) | Unit test backend — fast, no external dependency |
+| sqlalchemy_utils | Isolated test database (`globant_test`) provisioning |
+| Black | Code formatting (enforced in CI) |
+| Flake8 | Linting (enforced in CI) |
+
+## Local Development
+
+| Component | Technology |
+|---|---|
+| Local database | PostgreSQL (Docker) |
+| AWS service emulation | LocalStack |
+| IaC (optional) | Terraform (Future Improvement — not yet implemented) |
 
 ---
 
 # Repository Structure
 
 ```text
-docs/
-app/
-datasets/
-tests/
-.github/
+.github/       # GitHub Actions CI workflow
+app/           # Application source (FastAPI, SQLAlchemy, Alembic, services)
+backups/       # AVRO backup output (gitignored — .gitkeep tracks the folder)
+datasets/      # Historical CSV source files (gitignored — .gitkeep tracks the folder)
+docs/          # Project management + technical documentation
+scripts/       # Utility/diagnostic scripts
+tests/         # Unit (SQLite) and integration (Postgres) test suites
 ```
 
 ---
@@ -82,8 +110,7 @@ tracked (via `.gitkeep`) so the expected location is explicit.
 ## Loading Historical Data
 
 Once the stack is running and the database schema is migrated
-(`alembic upgrade head` — see `docs/10-deployment/deployment.md` if
-running against RDS, or run inside the `api` container for local Postgres):
+(`alembic upgrade head`, run inside the `api` container):
 
 ```bash
 docker-compose exec api bash
@@ -94,20 +121,37 @@ python -m loaders.historical /datasets/hired_employees.csv
 
 See [docs/03-historical-migration/execution-guide.md](docs/03-historical-migration/execution-guide.md) for full details, including data quality findings and idempotency behavior.
 
+## Running Tests
+
+```bash
+docker-compose exec api bash
+cd /app
+
+# Tier 1 — unit tests (SQLite, no external dependency), default
+python -m pytest ../tests/ -v
+
+# Tier 2 — both tiers, requires a Postgres connection
+# (isolated globant_test database, auto-created on first run)
+RUN_INTEGRATION_TESTS=1 python -m pytest ../tests/ -v
+```
+
+See [docs/09-testing/testing.md](docs/09-testing/testing.md) for the full
+two-tier strategy and database isolation rationale.
+
 ---
 
 # Documentation
 
 ## Project Management
 
-Read in this order — see [docs/00-project/README.md](docs/00-project/README.md) for the full index and update workflow.
+Read in this order:
 
 | Document | Description |
 |----------|-------------|
-| docs/00-project/project-status.md | Current phase, active branch, next branch |
+| docs/00-project/project-status.md | Current phase, active branch, submission scope |
 | docs/00-project/wbs.md | Work Breakdown Structure |
 | docs/00-project/backlog.md | Granular task checklist for the active phase |
-| docs/00-project/decisions.md | Architecture Decision Records (ADR) |
+| docs/00-project/decisions.md | Architecture Decision Records (ADR-001 through ADR-012) |
 | docs/00-project/conventions.md | Coding and tooling conventions |
 | docs/00-project/risk-register.md | Identified risks and mitigations |
 | docs/00-project/changelog.md | Append-only record of shipped changes |
@@ -126,7 +170,8 @@ Read in this order — see [docs/00-project/README.md](docs/00-project/README.md
 | docs/07-restore/restore.md | Restore Strategy |
 | docs/08-reports/reports.md | SQL Reports |
 | docs/09-testing/testing.md | Testing Strategy |
-| docs/10-deployment/deployment.md | Deployment Guide |
+| docs/11-cicd/cicd.md | CI/CD Pipeline (GitHub Actions) |
+| docs/12-deployment/deployment.md | Deployment Guide — **pending, Phase 12 deferred (see below)** |
 
 ---
 
@@ -164,9 +209,9 @@ main
 fully locally via `docker-compose up --build`, satisfying the
 challenge's core Docker requirement. Cloud deployment (AWS Lambda/API
 Gateway) is architecturally decided (see ADR-003) but deliberately
-deferred rather than rushed — see
+deferred rather than rushed under the submission deadline — see
 [docs/00-project/project-status.md](docs/00-project/project-status.md)
-for the submission note.
+for the full rationale.
 
 For real-time status, see [docs/00-project/project-status.md](docs/00-project/project-status.md).
 
@@ -174,11 +219,13 @@ For real-time status, see [docs/00-project/project-status.md](docs/00-project/pr
 
 # Future Improvements
 
-- Infrastructure as Code
+- Infrastructure as Code (Terraform)
+- AWS Lambda / API Gateway deployment (Phase 12, deferred)
+- Secrets migration to AWS Systems Manager Parameter Store (ADR-005)
 - Monitoring Dashboard
 - Authentication
 - Unit Test Coverage >90%
-- Automated Deployment
+- Automated deployment pipeline (CD, beyond current CI)
 
 ---
 
